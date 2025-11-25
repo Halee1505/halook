@@ -1,11 +1,17 @@
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { Colors } from "@/constants/theme";
 import { CameraView } from "@/src/components/CameraView";
 import { useEditorState } from "@/src/hooks/useEditorState";
 
-export default function HomeScreen() {
+export default function CameraScreen() {
   const router = useRouter();
   const setImageUri = useEditorState((state) => state.setImageUri);
   const resetAdjustments = useEditorState((state) => state.resetAdjustments);
@@ -18,7 +24,21 @@ export default function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={{ gap: 8 }}>
+        <Text style={styles.title}>Studio Camera</Text>
+        <Text style={styles.subtitle}>
+          Chụp nhanh những khoảnh khắc tốt nhất với tông màu Halook.
+        </Text>
+      </View>
+
       <CameraView onCapture={handleCapture} onPickLatest={handleCapture} />
+
+      <TouchableOpacity
+        style={styles.secondaryButton}
+        onPress={() => router.push("/editor")}
+      >
+        <Text style={styles.secondaryLabel}>Mở Editor</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -30,9 +50,6 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 24,
   },
-  hero: {
-    gap: 8,
-  },
   title: {
     fontSize: 32,
     fontWeight: "800",
@@ -40,36 +57,18 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: palette.text,
-    opacity: 0.7,
-    lineHeight: 20,
-  },
-  footerCard: {
-    backgroundColor: "#fff",
-    borderRadius: 28,
-    padding: 20,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  footerTitle: {
-    fontWeight: "700",
-    color: palette.text,
-    fontSize: 18,
-  },
-  footerText: {
-    color: palette.text,
-    opacity: 0.75,
-    lineHeight: 20,
+    opacity: 0.8,
   },
   secondaryButton: {
     borderRadius: 999,
+    backgroundColor: palette.background,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: palette.tint,
-    paddingVertical: 12,
-    alignItems: "center",
+    borderColor: palette.border,
   },
   secondaryLabel: {
-    color: palette.tint,
+    color: palette.text,
+    textAlign: "center",
     fontWeight: "700",
   },
 });

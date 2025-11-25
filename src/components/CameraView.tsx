@@ -7,39 +7,38 @@ import {
   FlashMode,
   useCameraPermissions,
 } from "expo-camera";
+import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
-  LayoutChangeEvent,
+  FlatList,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Gesture } from "react-native-gesture-handler";
-import {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 
 import { Colors } from "@/constants/theme";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import {
   ensureCameraPermissions,
-  pickLatestLibraryPhoto,
+  loadRecentLibraryImages,
 } from "@/src/services/imageLoader";
+import { Image } from "expo-image";
+import type { Asset } from "expo-media-library";
+import * as MediaLibrary from "expo-media-library";
 
 type Props = {
   onCapture: (uri: string) => void;
   onPickLatest?: (uri: string) => void;
 };
+
 const palette = Colors.light;
 
-const cameraHeight = Dimensions.get("window").height * 0.5;
-const knobSize = 70;
+const cameraHeight = Dimensions.get("window").height * 0.6;
 const cropModes = [
   { id: "original", label: "Original", ratio: null },
   { id: "custom", label: "Custom", ratio: 4 / 5 },
@@ -48,8 +47,25 @@ const cropModes = [
   { id: "2x3", label: "2 x 3", ratio: 2 / 3 },
 ];
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const ensureJpeg = async (uri: string) => {
+  if (!uri) return uri;
+  const lower = uri.toLowerCase();
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+    return uri;
+  }
+
+  try {
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [],
+      { compress: 0.95, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    return result.uri ?? uri;
+  } catch (error) {
+    console.warn("Unable to transcode image to JPEG", error);
+    return uri;
+  }
+};
 
 export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   const cameraRef = useRef<ExpoCameraView>(null);
@@ -58,29 +74,26 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   const [flash, setFlash] = useState<FlashMode>("off");
   const [isCapturing, setIsCapturing] = useState(false);
   const [isLoadingPick, setIsLoadingPick] = useState(false);
+  const [libraryAssets, setLibraryAssets] = useState<Asset[]>([]);
+  const [isLibraryVisible, setLibraryVisible] = useState(false);
+
   const storedCropRatio = useEditorState((state) => state.cropAspectRatio);
   const setCropAspectRatio = useEditorState(
     (state) => state.setCropAspectRatio
   );
+
   const initialCropId = useMemo(() => {
     const match = cropModes.find((mode) => mode.ratio === storedCropRatio);
     return match?.id ?? "custom";
   }, [storedCropRatio]);
+
   const [selectedCrop, setSelectedCrop] = useState<string>(initialCropId);
-  const [zoom, setZoom] = useState(0);
-  const [dialWidth, setDialWidth] = useState(0);
-  const dialProgress = useSharedValue(0);
-  const dialStart = useSharedValue(0);
 
   useEffect(() => {
     if (!permission?.granted) {
       requestPermission();
     }
   }, [permission, requestPermission]);
-
-  useEffect(() => {
-    dialProgress.value = withTiming(zoom, { duration: 120 });
-  }, [zoom, dialProgress]);
 
   const toggleCameraType = () => {
     setType((current) => (current === "back" ? "front" : "back"));
@@ -116,63 +129,98 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
       });
 
       if (photo?.uri) {
+        const fs = FileSystem as {
+          documentDirectory?: string | null;
+          cacheDirectory?: string | null;
+          copyAsync?: (args: { from: string; to: string }) => Promise<void>;
+        };
+
+        let finalUri = photo.uri;
+
+        if (photo.uri.startsWith("file://") && fs.copyAsync) {
+          const baseDir = fs.documentDirectory ?? fs.cacheDirectory ?? "";
+          const ext = photo.uri.split(".").pop() || "jpg";
+          const target = `${baseDir}Halook-Capture-${Date.now()}.${ext}`;
+
+          try {
+            await fs.copyAsync({ from: photo.uri, to: target });
+            finalUri = target;
+          } catch (copyErr) {
+            console.warn("Unable to copy captured photo", copyErr);
+          }
+        }
+
+        finalUri = await ensureJpeg(finalUri);
+
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        onCapture(photo.uri);
+        onCapture(finalUri);
       }
     } finally {
       setIsCapturing(false);
     }
   }, [isCapturing, onCapture]);
 
-  const handleZoomChange = useCallback((value: number) => {
-    setZoom(clamp(value, 0, 1));
-  }, []);
-
-  const onDialLayout = (event: LayoutChangeEvent) => {
-    setDialWidth(event.nativeEvent.layout.width);
-  };
-
-  const zoomGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .onBegin(() => {
-          const range = Math.max(dialWidth - knobSize, 1);
-          dialStart.value = dialProgress.value * range;
-        })
-        .onChange((event) => {
-          const range = Math.max(dialWidth - knobSize, 1);
-          const next = clamp(dialStart.value + event.changeX, 0, range);
-          const ratio = range === 0 ? 0 : next / range;
-          dialProgress.value = ratio;
-          runOnJS(handleZoomChange)(ratio);
-        }),
-    [dialWidth, dialProgress, dialStart, handleZoomChange]
-  );
-
-  const knobStyle = useAnimatedStyle(() => {
-    const range = Math.max(dialWidth - knobSize, 0);
-    return {
-      transform: [{ translateX: dialProgress.value * range }],
-    };
-  });
-
-  const displayedZoom = useMemo(() => (1 + zoom * 4).toFixed(1), [zoom]);
-
-  const handlePickLatest = useCallback(async () => {
-    if (!onPickLatest) {
-      return;
-    }
-
+  const openLibrary = useCallback(async () => {
+    setLibraryVisible(true);
     setIsLoadingPick(true);
     try {
-      const uri = await pickLatestLibraryPhoto();
-      if (uri) {
-        onPickLatest(uri);
-      }
+      const assets = await loadRecentLibraryImages(18);
+      setLibraryAssets(assets);
     } finally {
       setIsLoadingPick(false);
     }
-  }, [onPickLatest]);
+  }, []);
+
+  const closeLibrary = () => {
+    setLibraryVisible(false);
+  };
+
+  const handleSelectFromLibrary = async (asset: Asset) => {
+    try {
+      const info = await MediaLibrary.getAssetInfoAsync(asset, {
+        shouldDownloadFromNetwork: true,
+      });
+
+      const rawUri = info.localUri ?? info.uri;
+
+      if (!rawUri) {
+        console.warn("No local URI available for asset", asset.id);
+        return;
+      }
+
+      const sourceUri = rawUri.startsWith("file://")
+        ? rawUri
+        : `file://${rawUri}`;
+
+      let finalUri = sourceUri;
+
+      const fs = FileSystem as {
+        documentDirectory?: string | null;
+        cacheDirectory?: string | null;
+        copyAsync?: (args: { from: string; to: string }) => Promise<void>;
+      };
+
+      if (sourceUri.startsWith("file://") && fs.copyAsync) {
+        const baseDir = fs.documentDirectory ?? fs.cacheDirectory ?? "";
+        const originalName = asset.filename ?? `asset-${asset.id}`;
+        const hasExt = /\.[a-zA-Z0-9]+$/.test(originalName);
+        const safeFilename = hasExt ? originalName : `${originalName}.jpg`;
+        const target = `${baseDir}Halook-${Date.now()}-${safeFilename}`;
+
+        try {
+          await fs.copyAsync({ from: sourceUri, to: target });
+          finalUri = target;
+        } catch (copyErr) {
+          console.warn("Unable to copy asset", copyErr);
+        }
+      }
+
+      finalUri = await ensureJpeg(finalUri);
+      onPickLatest?.(finalUri);
+    } finally {
+      closeLibrary();
+    }
+  };
 
   if (!permission?.granted) {
     return (
@@ -192,14 +240,13 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   }
 
   return (
-    <View>
+    <>
       <View style={styles.cameraWrapper}>
         <ExpoCameraView
           ref={cameraRef}
           facing={type}
           style={styles.camera}
           flash={flash}
-          zoom={zoom}
         />
 
         <View style={styles.overlayTopBar}>
@@ -258,7 +305,7 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
             <TouchableOpacity
               style={styles.sideAction}
               disabled={isLoadingPick}
-              onPress={handlePickLatest}
+              onPress={openLibrary}
             >
               <Ionicons name="images-outline" size={20} color={palette.tint} />
               <Text style={styles.sideActionText}>
@@ -274,15 +321,18 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
             onPress={capturePhoto}
             disabled={isCapturing}
           >
-            {isCapturing ? (
-              <MaterialCommunityIcons
-                name="camera-iris"
-                size={32}
-                color={palette.tabIconSelected}
-              />
-            ) : (
-              <Entypo name="camera" size={32} color={palette.tabIconSelected} />
-            )}
+            <View style={styles.captureRing} />
+            <View style={styles.captureInner}>
+              {isCapturing ? (
+                <MaterialCommunityIcons
+                  name="camera-iris"
+                  size={28}
+                  color="#fff"
+                />
+              ) : (
+                <Entypo name="camera" size={28} color="#fff" />
+              )}
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.toggleCameraButton}
@@ -292,7 +342,47 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+
+      <Modal
+        visible={isLibraryVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeLibrary}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ảnh gần đây</Text>
+              <TouchableOpacity onPress={closeLibrary}>
+                <Ionicons name="close" size={24} color={palette.text} />
+              </TouchableOpacity>
+            </View>
+            {isLoadingPick ? (
+              <Text style={styles.modalHint}>Đang tải...</Text>
+            ) : (
+              <FlatList
+                data={libraryAssets}
+                keyExtractor={(item) => item.id}
+                numColumns={3}
+                columnWrapperStyle={{ gap: 8 }}
+                contentContainerStyle={{ gap: 8 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.libraryItem}
+                    onPress={() => handleSelectFromLibrary(item)}
+                  >
+                    <Image
+                      source={{ uri: item.uri }}
+                      style={styles.libraryImage}
+                    />
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
 
@@ -338,8 +428,8 @@ const styles = StyleSheet.create({
     pointerEvents: "none",
   },
   cropFrame: {
-    width: "80%",
-    maxHeight: cameraHeight - 60,
+    width: "90%",
+    maxHeight: cameraHeight - 40,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -417,56 +507,6 @@ const styles = StyleSheet.create({
   cropOptionTextSelected: {
     color: "#fff",
   },
-  zoomDial: {
-    marginTop: 8,
-    borderRadius: 24,
-    backgroundColor: "#f6f8f6",
-    padding: 16,
-    alignItems: "center",
-    gap: 12,
-  },
-  zoomTicks: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  zoomTick: {
-    width: 4,
-    height: 10,
-    borderRadius: 2,
-    backgroundColor: palette.border,
-  },
-  zoomTickActive: {
-    height: 16,
-    backgroundColor: palette.tint,
-  },
-  zoomTrack: {
-    width: "100%",
-    height: knobSize,
-    borderRadius: 999,
-    position: "relative",
-  },
-  zoomKnob: {
-    width: knobSize,
-    height: knobSize,
-    borderRadius: knobSize / 2,
-    backgroundColor: "#fff",
-    borderWidth: 4,
-    borderColor: palette.tint,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-  },
-  zoomKnobText: {
-    fontWeight: "700",
-    color: palette.text,
-  },
   actionsRow: {
     flexDirection: "row",
     width: "100%",
@@ -504,11 +544,29 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: palette.background,
   },
+  captureRing: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: 80,
+    borderWidth: 6,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  captureInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: palette.tint,
+    borderWidth: 4,
+    borderColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   toggleCameraButton: {
     backgroundColor: "rgba(0,0,0,0.45)",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -520,20 +578,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  captureRing: {
+  modalBackdrop: {
     position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalContent: {
+    width: "100%",
+    borderRadius: 28,
+    backgroundColor: "#fff",
+    padding: 16,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontWeight: "700",
+    fontSize: 18,
+    color: palette.text,
+  },
+  modalHint: {
+    textAlign: "center",
+    paddingVertical: 32,
+    color: palette.text,
+  },
+  libraryItem: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  libraryImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 48,
-    borderWidth: 6,
-    borderColor: "rgba(255,255,255,0.4)",
-  },
-  captureInner: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: palette.tint,
-    borderWidth: 4,
-    borderColor: "#fff",
   },
 });

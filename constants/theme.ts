@@ -5,37 +5,47 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const mint = {
+  50: '#edf7f1',
+  100: '#d8efe2',
+  200: '#b6e6cd',
+  300: '#8dd5b0',
+  400: '#5dc792',
+  500: '#36b37e',
+  600: '#279567',
+  700: '#1b7552',
+  800: '#125541',
+  900: '#0a372c',
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: '#18302a',
+    background: mint[50],
+    tint: mint[500],
+    icon: mint[600],
+    tabIconDefault: mint[300],
+    tabIconSelected: mint[600],
+    card: '#ffffff',
+    border: '#d7e8dc',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#f5fff8',
+    background: '#0d1712',
+    tint: mint[400],
+    icon: mint[500],
+    tabIconDefault: '#244737',
+    tabIconSelected: mint[400],
+    card: '#11261a',
+    border: '#1f3e32',
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
