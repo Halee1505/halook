@@ -7,9 +7,9 @@ import {
   FlashMode,
   useCameraPermissions,
 } from "expo-camera";
-import * as FileSystem from "expo-file-system";
-import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import * as ImageManipulator from "expo-image-manipulator";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
@@ -55,11 +55,10 @@ const ensureJpeg = async (uri: string) => {
   }
 
   try {
-    const result = await ImageManipulator.manipulateAsync(
-      uri,
-      [],
-      { compress: 0.95, format: ImageManipulator.SaveFormat.JPEG }
-    );
+    const result = await ImageManipulator.manipulateAsync(uri, [], {
+      compress: 0.95,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
     return result.uri ?? uri;
   } catch (error) {
     console.warn("Unable to transcode image to JPEG", error);
@@ -216,6 +215,7 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
       }
 
       finalUri = await ensureJpeg(finalUri);
+      setCropAspectRatio(null)
       onPickLatest?.(finalUri);
     } finally {
       closeLibrary();

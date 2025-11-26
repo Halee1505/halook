@@ -10,7 +10,7 @@ export default function HomeScreen() {
   const setImageUri = useEditorState((state) => state.setImageUri);
   const resetAdjustments = useEditorState((state) => state.resetAdjustments);
 
-  const handleCapture = (uri: string) => {
+  const handleCapture = (uri: string ) => {
     setImageUri(uri);
     resetAdjustments();
     router.push("/editor");

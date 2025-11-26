@@ -41,7 +41,6 @@ export const useEditorState = create<EditorStore>((set, get) => ({
       adjustments: { ...defaultAdjustments },
       preset: undefined,
       backgroundSource: null,
-      cropAspectRatio: null,
     }),
   setBackgroundSource: (source) => set({ backgroundSource: source }),
   setCropAspectRatio: (ratio) => set({ cropAspectRatio: ratio }),

@@ -1,10 +1,17 @@
-import { useMemo } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
+import { Image } from "expo-image";
+import { useMemo } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import type { Preset } from '@/src/models/presets';
-import { usePresetList } from '@/src/hooks/usePresets';
-import { Colors } from '@/constants/theme';
+import { Colors } from "@/constants/theme";
+import { usePresetList } from "@/src/hooks/usePresets";
+import type { Preset } from "@/src/models/presets";
 
 type Props = {
   selectedId?: string;
@@ -14,7 +21,11 @@ type Props = {
 
 const cardWidth = 140;
 
-export const PresetList = ({ selectedId, onSelect, title = 'Presets' }: Props) => {
+export const PresetList = ({
+  selectedId,
+  onSelect,
+  title = "Presets",
+}: Props) => {
   const { presets, loading, error, reload } = usePresetList();
 
   const content = useMemo(() => {
@@ -39,20 +50,30 @@ export const PresetList = ({ selectedId, onSelect, title = 'Presets' }: Props) =
     }
 
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 16 }}
+      >
         {presets.map((preset) => {
           const isSelected = preset._id === selectedId;
           return (
             <TouchableOpacity key={preset._id} onPress={() => onSelect(preset)}>
-              <View style={[styles.card, isSelected ? styles.cardSelected : undefined]}>
+              <View
+                style={[
+                  styles.card,
+                  isSelected ? styles.cardSelected : undefined,
+                ]}
+              >
                 <Image
                   source={
-                    preset.previewUrl ? { uri: preset.previewUrl } : require('../../assets/images/icon.png')
+                    preset.previewUrl
+                      ? { uri: preset.previewUrl }
+                      : require("../../assets/images/icon.png")
                   }
                   style={styles.cardImage}
                 />
                 <Text style={styles.cardTitle}>{preset.name}</Text>
-                <Text style={styles.cardSubtitle}>{preset.scope.toUpperCase()}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -76,13 +97,13 @@ const palette = Colors.light;
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: palette.text,
   },
   headerSubtitle: {
@@ -90,7 +111,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   centered: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 16,
   },
   infoText: {
@@ -110,19 +131,18 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   primaryLabel: {
-    color: '#fff',
-    fontWeight: '700',
+    color: "#fff",
+    fontWeight: "700",
   },
   card: {
-    width: cardWidth,
-    borderRadius: 24,
-    backgroundColor: '#fff',
-    padding: 12,
+    position: "relative",
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: palette.border,
+
   },
   cardSelected: {
     borderColor: palette.tint,
@@ -132,14 +152,16 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   cardImage: {
-    width: '100%',
-    height: 90,
-    borderRadius: 20,
-    marginBottom: 8,
+    width: 70,
+    height: 70,
+    borderRadius: 12,
   },
   cardTitle: {
-    fontWeight: '600',
-    color: palette.text,
+    position:"absolute",
+    bottom: 4,
+    left:4,
+    fontWeight: "600",
+    color: palette.card,
   },
   cardSubtitle: {
     fontSize: 12,

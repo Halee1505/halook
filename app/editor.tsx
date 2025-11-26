@@ -1,21 +1,20 @@
 import { useCanvasRef } from "@shopify/react-native-skia";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
   Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 import { Colors } from "@/constants/theme";
-import { BackgroundList } from "@/src/components/BackgroundList";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
 import { PresetList } from "@/src/components/PresetList";
-import { SliderPanel } from "@/src/components/SliderPanel";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
+import { BACKGROUND_OVERLAYS } from "@/src/services/imageLoader";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -24,10 +23,6 @@ export default function EditorScreen() {
   const imageUri = useEditorState((state) => state.imageUri);
   const adjustments = useEditorState((state) => state.adjustments);
   const applyPreset = useEditorState((state) => state.applyPreset);
-  const backgroundSource = useEditorState((state) => state.backgroundSource);
-  const setBackgroundSource = useEditorState(
-    (state) => state.setBackgroundSource
-  );
   const currentPresetId = useEditorState((state) => state.preset?._id);
 
   const handleSave = async (navigateToShare = false) => {
@@ -50,17 +45,21 @@ export default function EditorScreen() {
     }
   };
   const cropAspectRatio = useEditorState((s) => s.cropAspectRatio);
+  const screenBackground = BACKGROUND_OVERLAYS[2];
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <EditorCanvas
+      <Image source={screenBackground} style={styles.background} blurRadius={2} />
+      <View style={styles.overlay} pointerEvents="none" />
+       <View style={styles.canvasContent}>
+       <EditorCanvas
           canvasRef={canvasRef}
           imageUri={imageUri}
-          backgroundSource={backgroundSource}
           adjustments={adjustments}
           cropAspectRatio={cropAspectRatio}
         />
 
+       </View>
         {!imageUri && (
           <TouchableOpacity
             style={styles.primaryButton}
@@ -72,12 +71,7 @@ export default function EditorScreen() {
 
         <PresetList selectedId={currentPresetId} onSelect={applyPreset} />
 
-        <BackgroundList
-          selected={backgroundSource}
-          onSelect={setBackgroundSource}
-        />
-
-        <SliderPanel />
+        {/* <SliderPanel /> */}
 
         <View style={styles.actions}>
           <TouchableOpacity
@@ -93,7 +87,6 @@ export default function EditorScreen() {
             <Text style={styles.secondaryLabel}>Save & Share</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -102,6 +95,28 @@ const palette = Colors.light;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: palette.background,
+  },
+  background: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.104)",
+  },
+  canvasContent:{
+    height: "100%",
+    width:"100%",
+    flex:1,
+    display:"flex",
+    justifyContent:"center",
+    alignItems: "center",
+    padding: 16
+  },
+  content: {
     padding: 24,
     gap: 24,
   },
@@ -139,6 +154,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   actions: {
+    backgroundColor:"#fff",
+    padding: 16,
+    borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
     marginTop: 8,

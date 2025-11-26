@@ -12,7 +12,7 @@ type Props = {
 
 export const BackgroundList = ({ selected, onSelect }: Props) => (
   <View style={styles.container}>
-    <Text style={styles.heading}>Background overlay</Text>
+    <Text style={styles.heading}>Editor background</Text>
     <View style={styles.grid}>
       <Pressable onPress={() => onSelect(null)}>
         <View style={[styles.item, !selected && styles.itemSelected]}>
