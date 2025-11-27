@@ -71,6 +71,10 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   const cameraRef = useRef<ExpoCameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [type, setType] = useState<CameraType>("back");
+  const [availableLenses, setAvailableLenses] = useState<string[]>([]);
+  const [selectedLens, setSelectedLens] = useState<string | undefined>(
+    undefined
+  );
   const [flash, setFlash] = useState<FlashMode>("off");
   const [isCapturing, setIsCapturing] = useState(false);
   const [isLoadingPick, setIsLoadingPick] = useState(false);
@@ -114,6 +118,32 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   }, [cropConfig?.ratio, setCropAspectRatio]);
 
   const overlayAspect = cropConfig?.ratio ?? 3 / 4;
+
+  useEffect(() => {
+    // reset lens when switching to front camera
+    if (type === "front") {
+      setSelectedLens(undefined);
+      setAvailableLenses([]);
+    }
+  }, [type]);
+
+  const handleAvailableLensesChanged = useCallback(
+    (event?: { lenses?: string[] }) => {
+      const lenses = event?.lenses;
+      if (!Array.isArray(lenses) || !lenses.length) {
+        return;
+      }
+      setAvailableLenses(lenses);
+      const preferred =
+        lenses.find((lens) => lens === "builtInWideAngleCamera") ?? lenses[0];
+      setSelectedLens(preferred);
+    },
+    []
+  );
+
+  const handleSelectLens = (lens: string) => {
+    setSelectedLens(lens);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -267,8 +297,11 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
         <ExpoCameraView
           ref={cameraRef}
           facing={type}
+          selectedLens={selectedLens}
+          onAvailableLensesChanged={handleAvailableLensesChanged}
           style={styles.camera}
           flash={flash}
+          zoom={0.1}
         />
 
         <View style={styles.overlayTopBar}>
@@ -291,6 +324,37 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
       <View style={styles.actionControls}>
         <View pointerEvents="none" style={styles.glassLayer} />
         <View pointerEvents="none" style={styles.glassGlow} />
+        {type === "back" && availableLenses.length > 1 ? (
+          <View style={styles.lensRow}>
+            {availableLenses.map((lens) => {
+              const isActive = lens === selectedLens;
+              const label =
+                lens === "builtInWideAngleCamera"
+                  ? "Wide"
+                  : lens === "builtInTelephotoCamera"
+                  ? "Tele"
+                  : lens === "builtInUltraWideCamera"
+                  ? "Ultra"
+                  : lens;
+              return (
+                <TouchableOpacity
+                  key={lens}
+                  style={[styles.lensChip, isActive && styles.lensChipActive]}
+                  onPress={() => handleSelectLens(lens)}
+                >
+                  <Text
+                    style={[
+                      styles.lensChipText,
+                      isActive && styles.lensChipTextActive,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
         <View style={styles.cropOptions}>
           {cropModes.map((mode) => {
             const isSelected = selectedCrop === mode.id;
@@ -631,6 +695,34 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+  lensRow: {
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 18,
+    alignItems: "center",
+  },
+  lensChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.16)",
+  },
+  lensChipActive: {
+    backgroundColor: "rgba(255,255,255,0.32)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.5)",
+  },
+  lensChipText: {
+    color: "#f6f7fb",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  lensChipTextActive: {
+    color: palette.tint,
   },
   modalBackdrop: {
     position: "absolute",
