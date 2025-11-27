@@ -1,20 +1,13 @@
-import { useCanvasRef } from "@shopify/react-native-skia";
-import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
-
 import { Colors } from "@/constants/theme";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
 import { PresetList } from "@/src/components/PresetList";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
-import { BACKGROUND_OVERLAYS } from "@/src/services/imageLoader";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import { useCanvasRef } from "@shopify/react-native-skia";
+import { useRouter } from "expo-router";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -33,7 +26,10 @@ export default function EditorScreen() {
 
     try {
       const savedUri = await exportCanvasToCameraRoll(canvasRef);
-      Alert.alert("Đã lưu", "Ảnh đã được lưu vào Camera Roll.");
+      Alert.alert(
+        "Lưu thành công",
+        "Ảnh Halook của bạn đã có trong Camera Roll và sẵn sàng chia sẻ."
+      );
       if (navigateToShare) {
         router.push({ pathname: "/share", params: { uri: savedUri } });
       }
@@ -45,48 +41,32 @@ export default function EditorScreen() {
     }
   };
   const cropAspectRatio = useEditorState((s) => s.cropAspectRatio);
-  const screenBackground = BACKGROUND_OVERLAYS[2];
 
   return (
     <SafeAreaView style={styles.container}>
-      <Image source={screenBackground} style={styles.background} blurRadius={2} />
       <View style={styles.overlay} pointerEvents="none" />
-       <View style={styles.canvasContent}>
-       <EditorCanvas
+      <View style={styles.canvasContent}>
+        <EditorCanvas
           canvasRef={canvasRef}
           imageUri={imageUri}
           adjustments={adjustments}
           cropAspectRatio={cropAspectRatio}
         />
-
-       </View>
-        {!imageUri && (
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => router.push("/camera")}
-          >
-            <Text style={styles.primaryLabel}>Mở Camera</Text>
-          </TouchableOpacity>
-        )}
-
+      </View>
+      <View style={styles.content}>
         <PresetList selectedId={currentPresetId} onSelect={applyPreset} />
+      </View>
 
-        {/* <SliderPanel /> */}
+      {/* <SliderPanel /> */}
 
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.primaryButton, { flex: 1 }]}
-            onPress={() => handleSave(false)}
-          >
-            <Text style={styles.primaryLabel}>Lưu ảnh</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.secondaryButton, { flex: 1 }]}
-            onPress={() => handleSave(true)}
-          >
-            <Text style={styles.secondaryLabel}>Save & Share</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.btn} onPress={() => handleSave(false)}>
+          <Feather name="save" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btn} onPress={() => handleSave(true)}>
+          <AntDesign name="share-alt" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -102,19 +82,24 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
+    resizeMode: "cover",
+    bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255, 255, 255, 0.104)",
   },
-  canvasContent:{
+  canvasContent: {
     height: "100%",
-    width:"100%",
-    flex:1,
-    display:"flex",
-    justifyContent:"center",
+    width: "100%",
+    flex: 1,
+    display: "flex",
+    justifyContent: "center",
     alignItems: "center",
-    padding: 16
+    padding: 16,
   },
   content: {
     padding: 24,
@@ -129,36 +114,20 @@ const styles = StyleSheet.create({
     color: palette.text,
     opacity: 0.7,
   },
-  primaryButton: {
-    backgroundColor: palette.tint,
-    borderRadius: 999,
-    paddingVertical: 14,
+  btn: {
+    borderRadius: 8,
     alignItems: "center",
-  },
-  primaryLabel: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  secondaryButton: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: palette.tint,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginLeft: 12,
-  },
-  secondaryLabel: {
-    color: palette.tint,
-    fontWeight: "700",
-    fontSize: 16,
+    justifyContent: "center",
   },
   actions: {
-    backgroundColor:"#fff",
     padding: 16,
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    justifyContent: "flex-end",
+    position: "absolute",
+    gap: 16,
+    top: 32,
+    right: 12,
   },
 });

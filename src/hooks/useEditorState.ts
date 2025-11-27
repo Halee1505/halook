@@ -1,10 +1,20 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import type { EditorStore } from '@/src/models/editor';
-import type { Preset, PresetAdjustment } from '@/src/models/presets';
-import { defaultAdjustments, normalizeAdjustments, clampAdjustment } from '@/src/engine/presetMath';
+import {
+  clampAdjustment,
+  defaultAdjustments,
+  normalizeAdjustments,
+} from "@/src/engine/presetMath";
+import type { EditorStore } from "@/src/models/editor";
+import type { Preset, PresetAdjustment } from "@/src/models/presets";
 
 const normalizePreset = (preset?: Preset, adjustments?: PresetAdjustment) => {
+  console.log(
+    "normalizePreset called with preset:",
+    preset,
+    "and adjustments:",
+    adjustments
+  );
   if (adjustments) {
     return normalizeAdjustments(adjustments);
   }
@@ -47,7 +57,10 @@ export const useEditorState = create<EditorStore>((set, get) => ({
 }));
 
 export const useEditorImage = () => useEditorState((state) => state.imageUri);
-export const useEditorAdjustments = () => useEditorState((state) => state.adjustments);
+export const useEditorAdjustments = () =>
+  useEditorState((state) => state.adjustments);
 export const useEditorPreset = () => useEditorState((state) => state.preset);
-export const useEditorBackground = () => useEditorState((state) => state.backgroundSource);
-export const useEditorCropAspect = () => useEditorState((state) => state.cropAspectRatio);
+export const useEditorBackground = () =>
+  useEditorState((state) => state.backgroundSource);
+export const useEditorCropAspect = () =>
+  useEditorState((state) => state.cropAspectRatio);

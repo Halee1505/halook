@@ -19,8 +19,6 @@ type Props = {
   title?: string;
 };
 
-const cardWidth = 140;
-
 export const PresetList = ({
   selectedId,
   onSelect,
@@ -82,15 +80,7 @@ export const PresetList = ({
     );
   }, [error, loading, onSelect, presets, reload, selectedId]);
 
-  return (
-    <View style={{ gap: 12 }}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <Text style={styles.headerSubtitle}>{presets.length} preset</Text>
-      </View>
-      {content}
-    </View>
-  );
+  return <View style={{ gap: 12 }}>{content}</View>;
 };
 
 const palette = Colors.light;
@@ -142,7 +132,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: palette.border,
-
   },
   cardSelected: {
     borderColor: palette.tint,
@@ -157,9 +146,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   cardTitle: {
-    position:"absolute",
+    position: "absolute",
     bottom: 4,
-    left:4,
+    left: 4,
     fontWeight: "600",
     color: palette.card,
   },
