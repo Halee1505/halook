@@ -113,7 +113,6 @@ export const EditorCanvas = ({
 
   const imageAspect = image.width() / image.height();
   const targetAspect = cropAspectRatio ?? imageAspect;
-  console.log(canvasSize);
   return (
     <View
       style={{
@@ -133,7 +132,7 @@ export const EditorCanvas = ({
                 fit="cover"
                 rect={{
                   x: 0,
-                  y: 0,
+                  y:65,
                   width: canvasSize.width,
                   height: canvasSize.height,
                 }}
@@ -144,7 +143,7 @@ export const EditorCanvas = ({
                 fit="cover"
                 rect={{
                   x: 0,
-                  y: 0,
+                  y:65,
                   width: canvasSize.width,
                   height: canvasSize.height,
                 }}

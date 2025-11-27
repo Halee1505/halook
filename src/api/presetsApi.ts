@@ -11,12 +11,19 @@ let inflightPromise: Promise<Preset[]> | null = null;
 const hydratePresets = async (presets: Preset[]) =>
   Promise.all(
     presets.map(async (preset) => {
-      if (preset.adjustments) {
-        return preset;
+      // Always prefer the source file (XMP/JSON) so presets stay in sync with Lightroom
+      if (preset.fileUrl) {
+        const adjustments = await loadPresetAdjustments(preset.fileUrl, preset._id);
+        return { ...preset, adjustments };
       }
 
-      const adjustments = await loadPresetAdjustments(preset.fileUrl, preset._id);
+      if (preset.adjustments) {
+        return { ...preset, adjustments: preset.adjustments };
+      }
+
+      const adjustments = await loadPresetAdjustments(undefined, preset._id);
       return { ...preset, adjustments };
+
     }),
   );
 

@@ -9,12 +9,6 @@ import type { EditorStore } from "@/src/models/editor";
 import type { Preset, PresetAdjustment } from "@/src/models/presets";
 
 const normalizePreset = (preset?: Preset, adjustments?: PresetAdjustment) => {
-  console.log(
-    "normalizePreset called with preset:",
-    preset,
-    "and adjustments:",
-    adjustments
-  );
   if (adjustments) {
     return normalizeAdjustments(adjustments);
   }

@@ -26,6 +26,7 @@ import { useEditorState } from "@/src/hooks/useEditorState";
 import {
   ensureCameraPermissions,
   loadRecentLibraryImages,
+  pickLatestLibraryPhoto,
 } from "@/src/services/imageLoader";
 import { Image } from "expo-image";
 import type { Asset } from "expo-media-library";
@@ -38,7 +39,7 @@ type Props = {
 
 const palette = Colors.light;
 
-const cameraHeight = Dimensions.get("window").height * 0.6;
+const cameraHeight = Dimensions.get("window").height;
 const cropModes = [
   { id: "original", label: "Original", ratio: null },
   { id: "custom", label: "Custom", ratio: 4 / 5 },
@@ -75,6 +76,7 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   const [isLoadingPick, setIsLoadingPick] = useState(false);
   const [libraryAssets, setLibraryAssets] = useState<Asset[]>([]);
   const [isLibraryVisible, setLibraryVisible] = useState(false);
+  const [latestThumbUri, setLatestThumbUri] = useState<string | null>(null);
 
   const storedCropRatio = useEditorState((state) => state.cropAspectRatio);
   const setCropAspectRatio = useEditorState(
@@ -112,6 +114,25 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   }, [cropConfig?.ratio, setCropAspectRatio]);
 
   const overlayAspect = cropConfig?.ratio ?? 3 / 4;
+
+  useEffect(() => {
+    let mounted = true;
+    const hydrateLatest = async () => {
+      try {
+        const uri = await pickLatestLibraryPhoto();
+        if (mounted) {
+          setLatestThumbUri(uri);
+        }
+      } catch (error) {
+        console.warn("Unable to load latest library photo", error);
+      }
+    };
+
+    hydrateLatest();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const capturePhoto = useCallback(async () => {
     if (!cameraRef.current || isCapturing) {
@@ -165,6 +186,7 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
     try {
       const assets = await loadRecentLibraryImages(18);
       setLibraryAssets(assets);
+      setLatestThumbUri((prev) => prev ?? assets[0]?.uri ?? null);
     } finally {
       setIsLoadingPick(false);
     }
@@ -215,7 +237,7 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
       }
 
       finalUri = await ensureJpeg(finalUri);
-      setCropAspectRatio(null)
+      setCropAspectRatio(null);
       onPickLatest?.(finalUri);
     } finally {
       closeLibrary();
@@ -266,38 +288,32 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
         </View>
       </View>
 
-      <View style={styles.cropPanel}>
-        <View style={styles.cropControls}>
-          <View style={styles.cropHeader}>
-            <Text style={styles.cropLabel}>Crop mode</Text>
-            <TouchableOpacity style={styles.saveBadge}>
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.cropOptions}>
-            {cropModes.map((mode) => {
-              const isSelected = selectedCrop === mode.id;
-              return (
-                <TouchableOpacity
-                  key={mode.id}
+      <View style={styles.actionControls}>
+        <View pointerEvents="none" style={styles.glassLayer} />
+        <View pointerEvents="none" style={styles.glassGlow} />
+        <View style={styles.cropOptions}>
+          {cropModes.map((mode) => {
+            const isSelected = selectedCrop === mode.id;
+            return (
+              <TouchableOpacity
+                key={mode.id}
+                style={[
+                  styles.cropOption,
+                  isSelected && styles.cropOptionSelected,
+                ]}
+                onPress={() => setSelectedCrop(mode.id)}
+              >
+                <Text
                   style={[
-                    styles.cropOption,
-                    isSelected && styles.cropOptionSelected,
+                    styles.cropOptionText,
+                    isSelected && styles.cropOptionTextSelected,
                   ]}
-                  onPress={() => setSelectedCrop(mode.id)}
                 >
-                  <Text
-                    style={[
-                      styles.cropOptionText,
-                      isSelected && styles.cropOptionTextSelected,
-                    ]}
-                  >
-                    {mode.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                  {mode.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.actionsRow}>
@@ -307,7 +323,16 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
               disabled={isLoadingPick}
               onPress={openLibrary}
             >
-              <Ionicons name="images-outline" size={20} color={palette.tint} />
+              {latestThumbUri ? (
+                <>
+                  <Image
+                    source={{ uri: latestThumbUri }}
+                    style={styles.sideActionImage}
+                  />
+                  <View style={styles.sideActionOverlay} />
+                </>
+              ) : null}
+              <Ionicons name="images-outline" size={16} color={palette.tint} />
               <Text style={styles.sideActionText}>
                 {isLoadingPick ? "Đang tải" : "Album"}
               </Text>
@@ -321,16 +346,15 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
             onPress={capturePhoto}
             disabled={isCapturing}
           >
-            <View style={styles.captureRing} />
             <View style={styles.captureInner}>
               {isCapturing ? (
                 <MaterialCommunityIcons
                   name="camera-iris"
-                  size={28}
+                  size={36}
                   color="#fff"
                 />
               ) : (
-                <Entypo name="camera" size={28} color="#fff" />
+                <Entypo name="camera" size={36} color="#fff" />
               )}
             </View>
           </TouchableOpacity>
@@ -402,8 +426,6 @@ const styles = StyleSheet.create({
   },
   cameraWrapper: {
     position: "relative",
-    borderRadius: 36,
-    overflow: "hidden",
   },
   camera: {
     width: "100%",
@@ -430,13 +452,15 @@ const styles = StyleSheet.create({
   cropFrame: {
     width: "90%",
     maxHeight: cameraHeight - 40,
+    transform: "translateY(-80px)",
     justifyContent: "center",
     alignItems: "center",
   },
   cropBorder: {
     borderWidth: 2,
+
     borderColor: "rgba(255,255,255,0.8)",
-    borderRadius: 28,
+    borderRadius: 16,
     width: "100%",
     height: "100%",
   },
@@ -453,82 +477,107 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  cropPanel: {
-    marginTop: 16,
-    borderRadius: 32,
-    backgroundColor: "#fff",
-    padding: 16,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  cropControls: {
+  actionControls: {
+    position: "absolute",
+    bottom: 20,
+    left: 14,
+    right: 14,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    padding: 18,
     gap: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.28)",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.32,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 14,
   },
-  cropHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+
+  glassLayer: {
+    position: "absolute",
+    top: -110,
+    left: -40,
+    width: 240,
+    height: 240,
+    borderRadius: 200,
+    backgroundColor: "rgba(255,255,255,0.16)",
   },
-  cropLabel: {
-    fontWeight: "700",
-    color: palette.text,
+  glassGlow: {
+    position: "absolute",
+    bottom: -80,
+    right: -30,
+    width: 200,
+    height: 200,
+    borderRadius: 180,
+    backgroundColor: "rgba(255,255,255,0.12)",
   },
-  saveBadge: {
-    backgroundColor: palette.background,
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-  },
-  saveText: {
-    color: palette.text,
-    fontWeight: "600",
-  },
+
   cropOptions: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap: 8,
   },
   cropOption: {
     flex: 1,
-    marginHorizontal: 4,
-    paddingVertical: 10,
-    borderRadius: 16,
-    backgroundColor: palette.background,
+    paddingVertical: 12,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.26)",
     alignItems: "center",
   },
   cropOptionSelected: {
-    backgroundColor: palette.tint,
+    backgroundColor: "rgb(255, 255, 255)",
+    borderColor: palette.tint,
   },
   cropOptionText: {
-    color: palette.text,
+    color: "#f1f4ff",
     fontWeight: "600",
     fontSize: 12,
+    letterSpacing: 0.3,
   },
   cropOptionTextSelected: {
-    color: "#fff",
+    color: palette.tint,
   },
   actionsRow: {
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    marginTop: 16,
+    paddingHorizontal: 12,
   },
   sideAction: {
-    width: 70,
-    height: 70,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: palette.border,
-    backgroundColor: "#fff",
+    borderColor: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.14)",
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  sideActionImage: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  sideActionOverlay: {
+    position: "absolute",
+    inset: 0,
+    backgroundColor: "rgba(12,12,16,0.35)",
   },
   sideActionText: {
-    fontSize: 12,
-    color: palette.tint,
+    fontSize: 10,
+    color: "#eef2ff",
     fontWeight: "600",
   },
   sideActionPlaceholder: {
@@ -536,34 +585,39 @@ const styles = StyleSheet.create({
     height: 70,
   },
   captureButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 80,
+    width: 104,
+    height: 104,
+    borderRadius: 90,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    backgroundColor: palette.background,
-  },
-  captureRing: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    borderRadius: 80,
-    borderWidth: 6,
-    borderColor: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    shadowColor: palette.tint,
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   captureInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80,
+    height: 80,
+    borderRadius: 70,
     backgroundColor: palette.tint,
     borderWidth: 4,
-    borderColor: "#fff",
+    borderColor: "rgba(255,255,255,0.7)",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: palette.tint,
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   toggleCameraButton: {
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
     width: 50,
     height: 50,
     borderRadius: 25,
