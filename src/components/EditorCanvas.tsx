@@ -14,7 +14,7 @@ import {
 } from "@shopify/react-native-skia";
 import { EncodingType, readAsStringAsync } from "expo-file-system/legacy";
 
-import { buildShaderUniforms } from "@/src/engine/presetMath";
+import { applyPresetIntensity, buildShaderUniforms } from "@/src/engine/presetMath";
 import type { EditorAdjustments } from "@/src/models/editor";
 import { presetRuntimeEffect } from "../engine/presetEngineSkia";
 
@@ -25,6 +25,7 @@ type Props = {
   adjustments: EditorAdjustments;
   canvasRef: CanvasRef;
   cropAspectRatio?: number | null;
+  intensity?: number;
 };
 
 /**
@@ -87,6 +88,7 @@ export const EditorCanvas = ({
   adjustments,
   canvasRef,
   cropAspectRatio,
+  intensity = 1,
 }: Props) => {
   const image = useSkiaImage(imageUri ?? null);
 
@@ -103,8 +105,18 @@ export const EditorCanvas = ({
   );
 
   const uniforms = useMemo(
-    () => buildShaderUniforms(adjustments),
-    [adjustments]
+    () => {
+      const appliedAdjustments = applyPresetIntensity(adjustments, intensity);
+      const computedUniforms = buildShaderUniforms(appliedAdjustments);
+      // console.log("[EditorCanvas] applying adjustments", {
+      //   adjustments,
+      //   intensity,
+      //   appliedAdjustments,
+      //   uniforms: computedUniforms,
+      // });
+      return computedUniforms;
+    },
+    [adjustments, intensity]
   );
 
   if (!image || !presetRuntimeEffect) {

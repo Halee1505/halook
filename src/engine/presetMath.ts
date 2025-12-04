@@ -116,3 +116,23 @@ export const buildShaderUniforms = (adjustments: EditorAdjustments) => ({
   uSaturation: adjustments.saturation,
   uVibrance: adjustments.vibrance,
 });
+
+const clampIntensity = (value: number) =>
+  Math.min(1, Math.max(0, Number.isFinite(value) ? value : 1));
+
+export const applyPresetIntensity = (
+  adjustments: EditorAdjustments,
+  intensity: number
+): EditorAdjustments => {
+  const t = clampIntensity(intensity);
+  return (Object.keys(defaultAdjustments) as AdjustmentKey[]).reduce(
+    (acc, key) => {
+      const base = defaultAdjustments[key];
+      const target = adjustments[key];
+      const mixed = base + (target - base) * t;
+      acc[key] = clampAdjustment(key, mixed);
+      return acc;
+    },
+    {} as EditorAdjustments
+  );
+};

@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/theme";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
+import { PresetIntensityBar } from "@/src/components/PresetIntensityBar";
 import { PresetList } from "@/src/components/PresetList";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
@@ -7,7 +8,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import { useCanvasRef } from "@shopify/react-native-skia";
 import { useRouter } from "expo-router";
-import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -15,6 +16,8 @@ export default function EditorScreen() {
   const canvasRef = useCanvasRef();
   const imageUri = useEditorState((state) => state.imageUri);
   const adjustments = useEditorState((state) => state.adjustments);
+  const presetIntensity = useEditorState((state) => state.presetIntensity);
+  const setPresetIntensity = useEditorState((state) => state.setPresetIntensity);
   const applyPreset = useEditorState((state) => state.applyPreset);
   const currentPresetId = useEditorState((state) => state.preset?._id);
 
@@ -51,10 +54,21 @@ export default function EditorScreen() {
           imageUri={imageUri}
           adjustments={adjustments}
           cropAspectRatio={cropAspectRatio}
+          intensity={presetIntensity}
         />
       </View>
       <View style={styles.content}>
         <PresetList selectedId={currentPresetId} onSelect={applyPreset} />
+        <View style={styles.intensityCard}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <View>
+              <Text style={styles.intensityLabel}>Preset intensity</Text>
+              <Text style={styles.intensityHint}>Điều chỉnh độ mạnh của preset</Text>
+            </View>
+            <Text style={styles.intensityValue}>{Math.round(presetIntensity * 100)}%</Text>
+          </View>
+          <PresetIntensityBar value={presetIntensity} onChange={setPresetIntensity} />
+        </View>
       </View>
 
       {/* <SliderPanel /> */}
@@ -129,5 +143,24 @@ const styles = StyleSheet.create({
     gap: 16,
     top: 32,
     right: 12,
+  },
+  intensityCard: {
+    backgroundColor: palette.card,
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
+  intensityLabel: {
+    color: palette.text,
+    fontWeight: "700",
+  },
+  intensityHint: {
+    color: palette.icon,
+    fontSize: 12,
+  },
+  intensityValue: {
+    color: palette.text,
+    fontWeight: "700",
   },
 });

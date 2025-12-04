@@ -7,6 +7,7 @@ import {
   FlashMode,
   useCameraPermissions,
 } from "expo-camera";
+import Slider from "@react-native-community/slider";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -71,16 +72,13 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   const cameraRef = useRef<ExpoCameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [type, setType] = useState<CameraType>("back");
-  const [availableLenses, setAvailableLenses] = useState<string[]>([]);
-  const [selectedLens, setSelectedLens] = useState<string | undefined>(
-    undefined
-  );
   const [flash, setFlash] = useState<FlashMode>("off");
   const [isCapturing, setIsCapturing] = useState(false);
   const [isLoadingPick, setIsLoadingPick] = useState(false);
   const [libraryAssets, setLibraryAssets] = useState<Asset[]>([]);
   const [isLibraryVisible, setLibraryVisible] = useState(false);
   const [latestThumbUri, setLatestThumbUri] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(0.1);
 
   const storedCropRatio = useEditorState((state) => state.cropAspectRatio);
   const setCropAspectRatio = useEditorState(
@@ -118,32 +116,6 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
   }, [cropConfig?.ratio, setCropAspectRatio]);
 
   const overlayAspect = cropConfig?.ratio ?? 3 / 4;
-
-  useEffect(() => {
-    // reset lens when switching to front camera
-    if (type === "front") {
-      setSelectedLens(undefined);
-      setAvailableLenses([]);
-    }
-  }, [type]);
-
-  const handleAvailableLensesChanged = useCallback(
-    (event?: { lenses?: string[] }) => {
-      const lenses = event?.lenses;
-      if (!Array.isArray(lenses) || !lenses.length) {
-        return;
-      }
-      setAvailableLenses(lenses);
-      const preferred =
-        lenses.find((lens) => lens === "builtInWideAngleCamera") ?? lenses[0];
-      setSelectedLens(preferred);
-    },
-    []
-  );
-
-  const handleSelectLens = (lens: string) => {
-    setSelectedLens(lens);
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -297,11 +269,9 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
         <ExpoCameraView
           ref={cameraRef}
           facing={type}
-          selectedLens={selectedLens}
-          onAvailableLensesChanged={handleAvailableLensesChanged}
           style={styles.camera}
           flash={flash}
-          zoom={0.1}
+          zoom={zoom}
         />
 
         <View style={styles.overlayTopBar}>
@@ -324,37 +294,23 @@ export const CameraView = ({ onCapture, onPickLatest }: Props) => {
       <View style={styles.actionControls}>
         <View pointerEvents="none" style={styles.glassLayer} />
         <View pointerEvents="none" style={styles.glassGlow} />
-        {type === "back" && availableLenses.length > 1 ? (
-          <View style={styles.lensRow}>
-            {availableLenses.map((lens) => {
-              const isActive = lens === selectedLens;
-              const label =
-                lens === "builtInWideAngleCamera"
-                  ? "Wide"
-                  : lens === "builtInTelephotoCamera"
-                  ? "Tele"
-                  : lens === "builtInUltraWideCamera"
-                  ? "Ultra"
-                  : lens;
-              return (
-                <TouchableOpacity
-                  key={lens}
-                  style={[styles.lensChip, isActive && styles.lensChipActive]}
-                  onPress={() => handleSelectLens(lens)}
-                >
-                  <Text
-                    style={[
-                      styles.lensChipText,
-                      isActive && styles.lensChipTextActive,
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+        <View style={styles.zoomRow}>
+          <View style={styles.zoomLabelRow}>
+            <Text style={styles.zoomLabel}>Zoom</Text>
+            <Text style={styles.zoomValue}>{Math.round(zoom * 100)}%</Text>
           </View>
-        ) : null}
+          <Slider
+            style={styles.zoomSlider}
+            minimumValue={0}
+            maximumValue={1}
+            step={0.01}
+            value={zoom}
+            minimumTrackTintColor={palette.tint}
+            maximumTrackTintColor="rgba(255,255,255,0.3)"
+            thumbTintColor="#fff"
+            onValueChange={(value) => setZoom(value)}
+          />
+        </View>
         <View style={styles.cropOptions}>
           {cropModes.map((mode) => {
             const isSelected = selectedCrop === mode.id;
@@ -705,25 +661,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
   },
-  lensChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.16)",
-  },
-  lensChipActive: {
-    backgroundColor: "rgba(255,255,255,0.32)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
-  },
-  lensChipText: {
-    color: "#f6f7fb",
-    fontWeight: "600",
-    fontSize: 12,
-  },
-  lensChipTextActive: {
-    color: palette.tint,
-  },
   modalBackdrop: {
     position: "absolute",
     top: 0,
@@ -767,5 +704,33 @@ const styles = StyleSheet.create({
   libraryImage: {
     width: "100%",
     height: "100%",
+  },
+  zoomRow: {
+    backgroundColor: "rgba(255,255,255,0.12)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  zoomLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  zoomLabel: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 12,
+    letterSpacing: 0.3,
+  },
+  zoomValue: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  zoomSlider: {
+    width: "100%",
   },
 });

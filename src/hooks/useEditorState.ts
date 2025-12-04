@@ -26,6 +26,7 @@ export const useEditorState = create<EditorStore>((set, get) => ({
   preset: undefined,
   adjustments: { ...defaultAdjustments },
   cropAspectRatio: null,
+  presetIntensity: 1,
   setImageUri: (uri) => set({ imageUri: uri }),
   applyPreset: (preset, adjustments) => {
     set({
@@ -45,9 +46,14 @@ export const useEditorState = create<EditorStore>((set, get) => ({
       adjustments: { ...defaultAdjustments },
       preset: undefined,
       backgroundSource: null,
+      presetIntensity: 1,
     }),
   setBackgroundSource: (source) => set({ backgroundSource: source }),
   setCropAspectRatio: (ratio) => set({ cropAspectRatio: ratio }),
+  setPresetIntensity: (value) =>
+    set({
+      presetIntensity: Math.min(1, Math.max(0, value)),
+    }),
 }));
 
 export const useEditorImage = () => useEditorState((state) => state.imageUri);
@@ -58,3 +64,5 @@ export const useEditorBackground = () =>
   useEditorState((state) => state.backgroundSource);
 export const useEditorCropAspect = () =>
   useEditorState((state) => state.cropAspectRatio);
+export const usePresetIntensity = () =>
+  useEditorState((state) => state.presetIntensity);

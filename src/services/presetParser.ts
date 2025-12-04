@@ -39,9 +39,9 @@ const parseJsonPreset = (payload: string): PresetAdjustment | null => {
       return normalizeAdjustments(parsed.adjustments);
     }
 
-    const hasDirectKeys = (Object.keys(XMP_FIELDS) as (keyof XmpBasicSettings)[])
-      .every((key) => key in parsed);
-    if (hasDirectKeys) {
+    const hasKnownXmpKey = (Object.keys(XMP_FIELDS) as (keyof XmpBasicSettings)[])
+      .some((key) => key in parsed);
+    if (hasKnownXmpKey) {
       return mapXmpToAdjustments(parsed as XmpBasicSettings);
     }
   } catch {
