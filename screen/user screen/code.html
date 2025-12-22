@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Halook Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#30e877",
+                "background-light": "#f6f8f7",
+                "background-dark": "#112117",
+                },
+                fontFamily: {
+                "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        .glass-panel {
+            background: rgba(28, 38, 32, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .glass-card-interactive {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s ease;
+        }
+        .glass-card-interactive:active {
+            background: rgba(255, 255, 255, 0.08);
+        }.toggle-checkbox:checked {
+            right: 0;
+            border-color: #30e877;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #30e877;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display text-white selection:bg-primary selection:text-black">
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px]"></div>
+<div class="absolute bottom-[-10%] left-[-20%] w-[400px] h-[400px] rounded-full bg-teal-500/10 blur-[100px]"></div>
+<div class="absolute top-[40%] left-[20%] w-[300px] h-[300px] rounded-full bg-primary/10 blur-[80px]"></div>
+</div>
+<div class="relative z-10 flex min-h-screen w-full flex-col justify-end pb-4 pt-10">
+<div class="glass-panel mx-auto flex w-full max-w-md flex-col rounded-t-[32px] min-h-[90vh] pb-8 overflow-hidden relative">
+<div class="flex w-full items-center justify-center pt-4 pb-2">
+<div class="h-1.5 w-12 rounded-full bg-white/20"></div>
+</div>
+<div class="px-6 pb-4 flex justify-between items-center">
+<h2 class="text-3xl font-bold tracking-tight text-white">Settings</h2>
+<button class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-white/70 hover:bg-white/10 hover:text-primary transition">
+<span class="material-symbols-outlined" style="font-size: 24px;">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto px-4 pb-12">
+<div class="mb-6 rounded-2xl bg-white/5 p-4 border border-white/5 flex items-center gap-4">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-16 w-16 border-2 border-primary/30 shadow-lg shadow-primary/10" data-alt="User profile picture showing a smiling person in nature" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBJwl9gtKse8Cv_8pQqneocgzsQTyeGKaUK2yg5ewUWLzCFCp2pBcSa5aZreNfTS7CyGvQdr0EYOBnOYZu68UfuBSfJZNFOnIC7LFFQxbhpQsXW1PeLRTXSnN8oKIn2LUvB--h5gC3-nskvhpu7vm71DaCrkKB5ieLz1QkmMxr5lGIN6cB6XCHsxImbOu0JS1OVTouk99bnpY8iSFRYPBfwR6HwXm0oWo5KSWwtwoHcIgfCcf7OUFUSrYMrUJDt8ekrlLoTag8ZhjI");'></div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center gap-2">
+<p class="text-white text-lg font-bold leading-tight">Sarah Green</p>
+<span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/20">Free</span>
+</div>
+<p class="text-white/50 text-sm font-normal">sarah.g@halook.com</p>
+</div>
+<button class="text-primary hover:text-white transition">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+<div class="mb-8">
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1c2620] to-[#0d1410] p-1 shadow-lg border border-primary/20">
+<div class="absolute inset-0 bg-primary/5"></div>
+<div class="relative flex items-stretch justify-between gap-4 rounded-xl p-4 bg-background-dark/40 backdrop-blur-sm">
+<div class="flex flex-[2] flex-col justify-between gap-3">
+<div>
+<p class="text-white text-base font-bold leading-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+                                        Halook Elite
+                                    </p>
+<p class="text-white/60 text-xs mt-1 font-normal leading-relaxed">Liquid filters, AI masking &amp; 4K export.</p>
+</div>
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary hover:bg-white text-background-dark transition-colors gap-2 text-sm font-bold w-fit shadow-[0_0_15px_rgba(48,232,119,0.3)]">
+<span>Upgrade Now</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="w-24 bg-center bg-no-repeat bg-cover rounded-lg aspect-[3/4] border border-white/10" data-alt="Abstract artistic representation of liquid glass photo filter" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDO9v3WFwW7lFn1DUAunjjALRDS3sYqclZJ3m_0qHC0FlSslTZZJB6-CYaLQIRubItp672aL2tcz5ZLz7deAej0ERNsi4QFXcIYd-aPl3lrcZvjbesMT6iCKDR7wOIX4HRcFrmtDgTfXSmW4RpMSPH6xk2zX2PUHlQf02hk9POiTrbq9WdJ5hLpAaXFFpqvcEGa4SHJkTbrEjhPtkW4FM__uQcGMS8juOSZHfmWOA9VPd4jVF3ygRjPrIM5eTJPN-i8wgthPeyOu24");'></div>
+</div>
+</div>
+</div>
+<div class="mb-6">
+<h3 class="text-white/40 text-xs font-bold uppercase tracking-widest px-2 mb-3">General</h3>
+<div class="flex flex-col gap-2">
+<div class="glass-card-interactive flex items-center justify-between p-4 rounded-xl">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<span class="text-white font-medium text-sm">Notifications</span>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-transparent appearance-none cursor-pointer translate-x-0 checked:translate-x-full transition-transform duration-200 ease-in-out" id="toggle-notif" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-white/20 cursor-pointer" for="toggle-notif"></label>
+</div>
+</div>
+<button class="glass-card-interactive flex items-center justify-between p-4 rounded-xl w-full text-left">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">language</span>
+</div>
+<span class="text-white font-medium text-sm">Language</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-white/50 text-sm">English</span>
+<span class="material-symbols-outlined text-primary text-lg">chevron_right</span>
+</div>
+</button>
+<button class="glass-card-interactive flex items-center justify-between p-4 rounded-xl w-full text-left">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">palette</span>
+</div>
+<span class="text-white font-medium text-sm">Theme</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-white/50 text-sm">Mint Dark</span>
+<span class="material-symbols-outlined text-primary text-lg">chevron_right</span>
+</div>
+</button>
+</div>
+</div>
+<div class="mb-6">
+<h3 class="text-white/40 text-xs font-bold uppercase tracking-widest px-2 mb-3">Privacy &amp; Security</h3>
+<div class="flex flex-col gap-2">
+<div class="glass-card-interactive flex items-center justify-between p-4 rounded-xl">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<span class="text-white font-medium text-sm">Location Access</span>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-transparent appearance-none cursor-pointer translate-x-0 transition-transform duration-200 ease-in-out" id="toggle-loc" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-white/20 cursor-pointer" for="toggle-loc"></label>
+</div>
+</div>
+<button class="glass-card-interactive flex items-center justify-between p-4 rounded-xl w-full text-left">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<span class="text-white font-medium text-sm">Privacy Center</span>
+</div>
+<span class="material-symbols-outlined text-primary text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="text-white/40 text-xs font-bold uppercase tracking-widest px-2 mb-3">Support</h3>
+<div class="flex flex-col gap-2">
+<button class="glass-card-interactive flex items-center justify-between p-4 rounded-xl w-full text-left">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">help</span>
+</div>
+<span class="text-white font-medium text-sm">Help &amp; FAQ</span>
+</div>
+<span class="material-symbols-outlined text-primary text-lg">chevron_right</span>
+</button>
+<button class="glass-card-interactive flex items-center justify-between p-4 rounded-xl w-full text-left">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 text-primary">
+<span class="material-symbols-outlined">info</span>
+</div>
+<span class="text-white font-medium text-sm">About Halook</span>
+</div>
+<span class="material-symbols-outlined text-primary text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col items-center gap-4 mt-8 mb-4">
+<button class="w-full py-4 rounded-xl border border-red-500/30 text-red-400 font-medium text-sm hover:bg-red-500/10 transition">
+                        Log Out
+                    </button>
+<p class="text-white/20 text-xs">Version 2.4.0 (Build 349)</p>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

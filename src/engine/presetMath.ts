@@ -1,4 +1,5 @@
 import type { AdjustmentKey, EditorAdjustments } from '@/src/models/editor';
+import { createEmptyPresetAdjustment, type PresetAdjustment, type ToneAdjustments } from '@/src/models/presets';
 
 export const adjustmentRanges: Record<
   AdjustmentKey,
@@ -52,6 +53,49 @@ export const normalizeAdjustments = (
     },
     {} as EditorAdjustments
   );
+};
+
+const toneToEditorAdjustments = (tone: ToneAdjustments): EditorAdjustments => ({
+  exposure: tone.exposure,
+  contrast: 1 + tone.contrast / 100,
+  highlights: tone.highlights / 100,
+  shadows: tone.shadows / 100,
+  saturation: 1 + tone.saturation / 100,
+  vibrance: tone.vibrance / 100,
+});
+
+const editorToToneAdjustments = (adjustments: EditorAdjustments): ToneAdjustments => ({
+  exposure: adjustments.exposure,
+  contrast: (adjustments.contrast - 1) * 100,
+  highlights: adjustments.highlights * 100,
+  shadows: adjustments.shadows * 100,
+  whites: 0,
+  blacks: 0,
+  saturation: (adjustments.saturation - 1) * 100,
+  vibrance: adjustments.vibrance * 100,
+  clarity: 0,
+  dehaze: 0,
+});
+
+export const buildEditorAdjustmentsFromPreset = (
+  preset?: PresetAdjustment
+): EditorAdjustments => {
+  if (!preset) {
+    return { ...defaultAdjustments };
+  }
+
+  return normalizeAdjustments(toneToEditorAdjustments(preset.tone));
+};
+
+export const buildPresetFromEditorAdjustments = (
+  adjustments: EditorAdjustments
+): PresetAdjustment => {
+  const preset = createEmptyPresetAdjustment();
+  preset.tone = {
+    ...preset.tone,
+    ...editorToToneAdjustments(adjustments),
+  };
+  return preset;
 };
 
 export const deriveAdjustmentsFromSeed = (seed: string): EditorAdjustments => {

@@ -21,6 +21,7 @@ export interface EditorStateShape {
   preset?: Preset;
   adjustments: EditorAdjustments;
   cropAspectRatio: number | null;
+  cropModeId: string;
   presetIntensity: number;
 }
 
@@ -30,7 +31,7 @@ export interface EditorStateActions {
   updateAdjustment: (key: AdjustmentKey, value: number) => void;
   resetAdjustments: () => void;
   setBackgroundSource: (source: ImageSourcePropType | null) => void;
-  setCropAspectRatio: (ratio: number | null) => void;
+  setCropAspectRatio: (ratio: number | null, modeId?: string) => void;
   setPresetIntensity: (value: number) => void;
 }
 

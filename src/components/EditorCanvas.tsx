@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import type { LayoutChangeEvent } from "react-native";
-import { View } from "react-native";
+import { StyleSheet, type LayoutChangeEvent, View } from "react-native";
 
 import {
   Canvas,
@@ -26,6 +25,26 @@ type Props = {
   canvasRef: CanvasRef;
   cropAspectRatio?: number | null;
   intensity?: number;
+};
+
+type Size = { width: number; height: number };
+
+const fitWithinBounds = (container: Size, aspectRatio: number): Size => {
+  const { width, height } = container;
+  if (width <= 0 || height <= 0 || aspectRatio <= 0) {
+    return { width: 0, height: 0 };
+  }
+
+  const containerAspect = width / height;
+  if (containerAspect > aspectRatio) {
+    const fittedHeight = height;
+    const fittedWidth = fittedHeight * aspectRatio;
+    return { width: fittedWidth, height: fittedHeight };
+  }
+
+  const fittedWidth = width;
+  const fittedHeight = fittedWidth / aspectRatio;
+  return { width: fittedWidth, height: fittedHeight };
 };
 
 /**
@@ -92,17 +111,20 @@ export const EditorCanvas = ({
 }: Props) => {
   const image = useSkiaImage(imageUri ?? null);
 
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [containerSize, setContainerSize] = useState<Size>({
+    width: 0,
+    height: 0,
+  });
 
-  const handleLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      const { width, height } = e.nativeEvent.layout;
-      if (width !== canvasSize.width || height !== canvasSize.height) {
-        setCanvasSize({ width, height });
+  const handleLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setContainerSize((prev) => {
+      if (prev.width === width && prev.height === height) {
+        return prev;
       }
-    },
-    [canvasSize.width, canvasSize.height]
-  );
+      return { width, height };
+    });
+  }, []);
 
   const uniforms = useMemo(
     () => {
@@ -119,51 +141,76 @@ export const EditorCanvas = ({
     [adjustments, intensity]
   );
 
-  if (!image || !presetRuntimeEffect) {
-    return null;
-  }
-
-  const imageAspect = image.width() / image.height();
+  const imageAspect = image ? image.width() / image.height() : 3 / 4;
   const targetAspect = cropAspectRatio ?? imageAspect;
+  const fittedSize = useMemo(
+    () => fitWithinBounds(containerSize, targetAspect),
+    [containerSize, targetAspect]
+  );
+
+  const canRender =
+    !!image &&
+    !!presetRuntimeEffect &&
+    fittedSize.width > 0 &&
+    fittedSize.height > 0;
+
   return (
-    <View
-      style={{
-        width: "100%",
-        aspectRatio: targetAspect,
-        borderRadius: 16,
-        overflow:"hidden"
-      }}
-      onLayout={handleLayout}
-    >
-      <Canvas ref={canvasRef} style={{ flex: 1 }}>
-        {canvasSize.width > 0 && canvasSize.height > 0 && (
-          <Fill>
-            <Shader source={presetRuntimeEffect} uniforms={uniforms}>
-              <ImageShader
-                image={image}
-                fit="cover"
-                rect={{
-                  x: 0,
-                  y:65,
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                }}
-              />
-              {/* second child matches backgroundImage uniform; reuse base image when no overlay */}
-              <ImageShader
-                image={image}
-                fit="cover"
-                rect={{
-                  x: 0,
-                  y:65,
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                }}
-              />
-            </Shader>
-          </Fill>
+    <View style={styles.outer} onLayout={handleLayout}>
+      <View
+        style={[
+          styles.canvasWrapper,
+          { width: fittedSize.width, height: fittedSize.height },
+        ]}
+      >
+        {canRender && image && presetRuntimeEffect ? (
+          <Canvas ref={canvasRef} style={StyleSheet.absoluteFill}>
+            <Fill>
+              <Shader source={presetRuntimeEffect} uniforms={uniforms}>
+                <ImageShader
+                  image={image}
+                  fit="cover"
+                  rect={{
+                    x: 0,
+                    y: 0,
+                    width: fittedSize.width,
+                    height: fittedSize.height,
+                  }}
+                />
+                <ImageShader
+                  image={image}
+                  fit="cover"
+                  rect={{
+                    x: 0,
+                    y: 0,
+                    width: fittedSize.width,
+                    height: fittedSize.height,
+                  }}
+                />
+              </Shader>
+            </Fill>
+          </Canvas>
+        ) : (
+          <View style={styles.placeholder} />
         )}
-      </Canvas>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  outer: {
+    width: "100%",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  canvasWrapper: {
+    borderRadius: 20,
+    overflow: "hidden",
+    backgroundColor: "#010101",
+  },
+  placeholder: {
+    flex: 1,
+    backgroundColor: "#010101",
+  },
+});

@@ -1,4 +1,5 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { ShareTarget, shareImageToTarget } from '@/src/services/shareService';
 import { Colors } from '@/constants/theme';
@@ -7,11 +8,14 @@ type Props = {
   imageUri?: string | null;
 };
 
-const targets: { target: ShareTarget; label: string }[] = [
-  { target: 'instagram', label: 'Instagram' },
-  { target: 'facebook', label: 'Facebook' },
-  { target: 'threads', label: 'Threads' },
-  { target: 'system', label: 'Khác' },
+const targets: { target: ShareTarget; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
+  { target: 'instagram', label: 'Instagram', icon: 'camera-alt' },
+  { target: 'facebook', label: 'Facebook', icon: 'public' },
+  { target: 'threads', label: 'Threads', icon: 'chat-bubble' },
+  { target: 'system', label: 'Zalo', icon: 'forum' },
+  { target: 'system', label: 'Twitter', icon: 'close' },
+  { target: 'system', label: 'Sao chép', icon: 'link' },
+  { target: 'system', label: 'Thêm', icon: 'more-horiz' },
 ];
 
 export const ShareOptions = ({ imageUri }: Props) => {
@@ -29,42 +33,44 @@ export const ShareOptions = ({ imageUri }: Props) => {
   };
 
   return (
-    <View style={{ gap: 12 }}>
-      <Text style={styles.heading}>Chia sẻ nhanh</Text>
-      <View style={styles.grid}>
-        {targets.map((item) => (
-          <TouchableOpacity key={item.target} style={styles.shareButton} onPress={() => handleShare(item.target)}>
-            <Text style={styles.shareLabel}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      {targets.map((item, index) => (
+        <TouchableOpacity key={`${item.label}-${index}`} style={styles.option} onPress={() => handleShare(item.target)}>
+          <View style={styles.optionIcon}>
+            <MaterialIcons name={item.icon} size={26} color={palette.tint} />
+          </View>
+          <Text style={styles.optionLabel}>{item.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 };
 
 const palette = Colors.light;
 
 const styles = StyleSheet.create({
-  heading: {
-    fontWeight: '700',
-    color: palette.text,
-    fontSize: 16,
+  scrollContent: {
+    gap: 18,
+    paddingRight: 24,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  option: {
+    width: 72,
+    alignItems: 'center',
+    gap: 8,
   },
-  shareButton: {
-    backgroundColor: palette.tint,
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minWidth: '45%',
+  optionIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  shareLabel: {
-    color: '#fff',
-    fontWeight: '700',
-    textAlign: 'center',
+  optionLabel: {
+    fontSize: 12,
+    color: 'rgba(15, 23, 42, 0.8)',
+    fontWeight: '600',
   },
 });

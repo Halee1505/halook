@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Halook - Presets Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#30e877", // New Mint Green
+              "primary-foreground": "#022c22", // Dark Emerald
+              "background-light": "#f0fdfa", 
+              "background-dark": "#0c0a09", 
+              "surface-dark": "#1c1917", 
+              "surface-card": "#292524", 
+              "glass-border": "rgba(255, 255, 255, 0.1)",
+              "glass-bg": "rgba(255, 255, 255, 0.05)",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+            backdropBlur: {
+              'xs': '2px',
+            }
+          },
+        },
+      }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    .liquid-glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    .liquid-glass-card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display antialiased text-stone-200">
+<div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-60"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-900/40 rounded-full blur-[100px] opacity-60"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,#0c0a09_100%)]"></div>
+</div>
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<header class="sticky top-0 z-40 w-full liquid-glass border-b-0 shadow-lg">
+<div class="flex items-center justify-between px-4 pt-4 pb-2">
+<button class="flex size-10 items-center justify-center rounded-full text-stone-200 hover:bg-white/10 transition-colors backdrop-blur-md">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-white drop-shadow-md">Library</h1>
+<button class="flex size-10 items-center justify-center rounded-full text-stone-200 hover:bg-white/10 transition-colors backdrop-blur-md">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="px-4 py-2">
+<div class="group flex h-12 w-full items-center gap-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 px-4 focus-within:border-primary/50 focus-within:bg-black/30 transition-all shadow-inner">
+<span class="material-symbols-outlined text-stone-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="flex-1 bg-transparent text-sm font-medium text-white placeholder-stone-400 focus:outline-none border-none focus:ring-0 p-0" placeholder="Search presets, styles..." type="text"/>
+</div>
+</div>
+<div class="flex gap-3 overflow-x-auto px-4 pb-4 pt-2 no-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground backdrop-blur border border-primary/20 px-5 shadow-[0_0_15px_rgba(48,232,119,0.3)] transition-transform active:scale-95">
+<span class="text-xs font-bold">All</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-primary/10 backdrop-blur-md border border-white/10 hover:border-primary/30 px-5 transition-all active:scale-95 group">
+<span class="text-xs font-medium text-stone-300 group-hover:text-primary">Favorites</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-primary/10 backdrop-blur-md border border-white/10 hover:border-primary/30 px-5 transition-all active:scale-95 group">
+<span class="text-xs font-medium text-stone-300 group-hover:text-primary">Trending</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-primary/10 backdrop-blur-md border border-white/10 hover:border-primary/30 px-5 transition-all active:scale-95 group">
+<span class="text-xs font-medium text-stone-300 group-hover:text-primary">Cinematic</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-primary/10 backdrop-blur-md border border-white/10 hover:border-primary/30 px-5 transition-all active:scale-95 group">
+<span class="text-xs font-medium text-stone-300 group-hover:text-primary">B&amp;W</span>
+</button>
+</div>
+</header>
+<main class="flex-1 px-4 py-4">
+<h2 class="sr-only">Preset List</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" data-alt="Sneakers on a red background demonstrating vivid color preset" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAx12N086ZsBAgqstqLVOGr-Aqlz8-YBb3lnldMali2Lx6Ydxg4NN3DnaZAVQJsmY8LS3cEvWHJnun-k0QNdyzt8X3MCYNTrrXrb9T0hhIWo4FoY3wZsv75p-yNXB7QQp8QKFDjhMlMOdvl_9OnxS5xq0xC3MDR745PuIf-sbcwdIVS2x-zaXv0j6yzRA1pG81U8xOMwzc-MovPh03nmRgqtRvjHzKQO7qDAoaGHwWCCDUeoPVH8TDNpeE-lBoUQCgCoA-vlbTCwco');"></div>
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-emerald-950/60 backdrop-blur-md border border-emerald-500/20 px-2.5 py-1">
+<span class="text-[10px] font-bold uppercase tracking-wider text-emerald-100">Free</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-2.5 text-center shadow-lg">
+<p class="text-xs font-bold text-white tracking-wide">Teal &amp; Orange</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg ring-1 ring-primary/50 shadow-primary/20 transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" data-alt="Moody dark portrait of a woman looking sideways" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8hXQFdel5Uky6agPIDwOpTVpUQ_8QOEkAchuvb4AgSozXHKdSNxQzL-9QT1GJI9MUP_ePM27ZJpzUT_P1kUiXOBxBM3sUREt3XjCNy7a5zafkj2b5EqIkxohZS0TACU5yAu3nemtX0HcafIAiSoz6fSrfGSPwIXiFUc7isM07DYDoOpY6Oj9cbMiApEQJOvCsKyYQ99BEFvCDf-h4DVWSFHdLV_ymbG4uoXCz7sd0jl13BNYLPR8dFKcGLSTKnitiGovTLbaHjZ0');"></div>
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-primary backdrop-blur-md border border-primary/20 px-2.5 py-1 shadow-[0_0_12px_rgba(48,232,119,0.4)]">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Pro</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-2.5 text-center shadow-lg">
+<p class="text-xs font-bold text-white tracking-wide">Moody Dark</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110 blur-[2px] opacity-80" data-alt="Grainy film style photo of a sunset through trees" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDnRDGkXwOUNhefF1ueUgO6hYiAmkh5WXUW6biT60DqgTBi6HbCqaHEIPeLzsZOXESMsIt5hNRuUklldryatLY87DV44m1M_YLW3y9UGN0DhIZRnaX4DyJuKPahzBmupWQCYaxSDb0jGsMmcVaqWaXUYtmYSBr4FN2pqU9clb9KsQ5w3nYpFUc7Gc3HAf5j6F2v_z84zi82qW1ggfk3CljnV9oGxEl088G9WEm_-PzoxHFmVhOjaycBeprlAPFKkAt_K-uRgxIAQ78');"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+<div class="flex size-11 items-center justify-center rounded-full bg-emerald-950/50 backdrop-blur-lg border border-primary/30 shadow-xl mb-2">
+<span class="material-symbols-outlined text-primary text-xl">lock</span>
+</div>
+</div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-800 to-primary border border-emerald-400/20 px-2.5 py-1 shadow-lg shadow-emerald-900/20">
+<span class="text-[10px] font-bold uppercase tracking-wider text-white">Elite</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5 p-2.5 flex items-center justify-between px-3">
+<p class="text-xs font-bold text-stone-300 tracking-wide">Film 35mm</p>
+<span class="material-symbols-outlined text-sm text-primary/70">lock</span>
+</div>
+</div>
+</div>
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" data-alt="Soft portrait of a woman with pastel pink background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBrb9az7J_XxcMc3FyygbIIIJKqhpIVn5wEw0rSda5jlZAyaF1HO0rP_QJ-hDlF15B4C5h08_leO_aUjmjpnjMFpurfzMH58NUJPVQ16WgkZQLZwLAeq9jJnLqTiPx3ZBxR_pP0BHglb_rMu6_XJupUy6_65xKqreEFm6xT-okGT90d8zjLqa4cSjvUXlPZtOA_PbPdGrBfi_PBieCWBV2-7bWNLzNcLIdFWlLsmUWpGiSpcrIp3TPLgjPKRQ2WKVrEScl1BRvdcvQ');"></div>
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-emerald-950/60 backdrop-blur-md border border-emerald-500/20 px-2.5 py-1">
+<span class="text-[10px] font-bold uppercase tracking-wider text-emerald-100">Free</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-2.5 text-center shadow-lg">
+<p class="text-xs font-bold text-white tracking-wide">Soft Skin</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg ring-1 ring-primary/50 shadow-primary/20 transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" data-alt="Cozy coffee shop interior with warm vintage tones" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDEkJxYE-r2tBGQ5dorq6dpW8DpSShO1T8wXWmh5wTwM24Ys_Ym4USTRPSx625CGhKKz6bd4XeVrCiC8I2vQKLozG59AAVHUT3NCF_v7EMYCn1KGAmz9GWmgApffd-VxGwU3ZwlLkMLfTAksOw29AQzN8lJaRkZQoaP4Urv7ZxZr75wR6roCB6sdCiygFKMr8tMpGseBxZv6sb45vx44RZWJIek_7f_gGC6Q2qn9CE4dh531y8HhBYieBdN2quSFulaP6IXdncR08Y');"></div>
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-primary backdrop-blur-md border border-primary/20 px-2.5 py-1 shadow-[0_0_12px_rgba(48,232,119,0.4)]">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary-foreground">Pro</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-2.5 text-center shadow-lg">
+<p class="text-xs font-bold text-white tracking-wide">Vintage Warm</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-[4/5] overflow-hidden rounded-3xl liquid-glass-card shadow-lg transition-transform duration-300 hover:scale-[1.02]">
+<div class="absolute inset-0 m-[1px] rounded-[22px] overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110 blur-[2px] opacity-80" data-alt="Forest landscape with moody green tones" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdnT9vrFT1f5sTwajpXwG50GjMPgO82-IJ5UUzEDBj2F--hrLW-a5s1aUsuFgTPjs7XTHjQURTygHdO1Sp33Vf6Pja_U4MJMoiMw98T5cFwcU21d8dqvVhyNNFNXOKe4Tges_IYPzAyruoIxGS3rvIC5qdPA7U9_QXi8_-IlfvZuSfUTgbUBXfJYTKTCGWWHG0AZJ7M6LcVZXfOkR-YFPaSZLnNVeNr4d_3fBiiGnBUyVwrXnnBnF4BOktfAQBgRS1xuHjCR7qPlU');"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+<div class="flex size-11 items-center justify-center rounded-full bg-emerald-950/50 backdrop-blur-lg border border-primary/30 shadow-xl mb-2">
+<span class="material-symbols-outlined text-primary text-xl">lock</span>
+</div>
+</div>
+</div>
+<div class="absolute top-3 right-3">
+<div class="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-800 to-primary border border-emerald-400/20 px-2.5 py-1 shadow-lg shadow-emerald-900/20">
+<span class="text-[10px] font-bold uppercase tracking-wider text-white">Elite</span>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 p-3">
+<div class="rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5 p-2.5 flex items-center justify-between px-3">
+<p class="text-xs font-bold text-stone-300 tracking-wide">Forest Deep</p>
+<span class="material-symbols-outlined text-sm text-primary/70">lock</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0c0a09] via-[#0c0a09]/90 to-transparent z-50">
+<button class="relative group flex w-full items-center justify-center gap-3 rounded-2xl overflow-hidden h-14 transition-transform active:scale-[0.98]">
+<div class="absolute inset-0 bg-primary opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute inset-0 bg-gradient-to-tr from-emerald-400 to-transparent opacity-50"></div>
+<div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+<span class="relative material-symbols-outlined text-primary-foreground z-10">add_a_photo</span>
+<span class="relative text-base font-bold tracking-wide text-primary-foreground z-10">Import Photo</span>
+</button>
+</div>
+</div>
+
+</body></html>

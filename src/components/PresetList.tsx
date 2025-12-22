@@ -1,8 +1,9 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
 import { useMemo } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,14 +17,18 @@ import type { Preset } from "@/src/models/presets";
 type Props = {
   selectedId?: string;
   onSelect: (preset: Preset) => void;
-  title?: string;
 };
 
-export const PresetList = ({
-  selectedId,
-  onSelect,
-  title = "Presets",
-}: Props) => {
+const scopeBadgeStyles: Record<
+  NonNullable<Preset["scope"]>,
+  { backgroundColor: string; color: string; label: string }
+> = {
+  free: { backgroundColor: "rgba(6,78,59,0.8)", color: "#d1fae5", label: "Free" },
+  pro: { backgroundColor: "#30e877", color: "#022c22", label: "Pro" },
+  elite: { backgroundColor: "rgba(15,118,110,0.9)", color: "#ecfeff", label: "Elite" },
+};
+
+export const PresetList = ({ selectedId, onSelect }: Props) => {
   const { presets, loading, error, reload } = usePresetList();
 
   const content = useMemo(() => {
@@ -48,70 +53,67 @@ export const PresetList = ({
     }
 
     return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 16 }}
-      >
-        {presets.map((preset) => {
-          const isSelected = preset._id === selectedId;
+      <FlatList
+        data={presets}
+        keyExtractor={(item) => item._id}
+        numColumns={2}
+        columnWrapperStyle={{ gap: 16 }}
+        contentContainerStyle={{ paddingBottom: 24, gap: 16 }}
+        renderItem={({ item }) => {
+          const isSelected = item._id === selectedId;
+          const scopeStyle = scopeBadgeStyles[item.scope ?? "free"];
+          const isLocked = item.scope === "elite";
+
           return (
-            <TouchableOpacity key={preset._id} onPress={() => onSelect(preset)}>
-              <View
-                style={[
-                  styles.card,
-                  isSelected ? styles.cardSelected : undefined,
-                ]}
-              >
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => onSelect(item)}>
+              <View style={[styles.card, isSelected && styles.cardSelected]}>
                 <Image
                   source={
-                    preset.previewUrl
-                      ? { uri: preset.previewUrl }
+                    item.previewUrl
+                      ? { uri: item.previewUrl }
                       : require("../../assets/images/icon.png")
                   }
                   style={styles.cardImage}
                 />
-                <Text style={styles.cardTitle}>{preset.name}</Text>
+                <View style={styles.cardGradient} />
+                <View style={[styles.scopeBadge, { backgroundColor: scopeStyle.backgroundColor }]}>
+                  <Text style={[styles.scopeLabel, { color: scopeStyle.color }]}>{scopeStyle.label}</Text>
+                </View>
+                {isLocked && (
+                  <View style={styles.lockBadge}>
+                    <MaterialIcons name="lock" size={16} color="#d1fae5" />
+                  </View>
+                )}
+                <View style={styles.cardFooter}>
+                  <Text style={styles.cardTitle}>{item.name}</Text>
+                </View>
               </View>
             </TouchableOpacity>
           );
-        })}
-      </ScrollView>
+        }}
+      />
     );
   }, [error, loading, onSelect, presets, reload, selectedId]);
 
-  return <View style={{ gap: 12 }}>{content}</View>;
+  return <View>{content}</View>;
 };
 
 const palette = Colors.light;
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: palette.text,
-  },
-  headerSubtitle: {
-    color: palette.text,
-    opacity: 0.6,
-  },
   centered: {
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 32,
+    gap: 12,
   },
   infoText: {
     color: palette.text,
-    marginTop: 8,
+    fontWeight: "600",
   },
   errorCard: {
-    backgroundColor: palette.background,
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 24,
+    padding: 20,
     gap: 12,
     borderWidth: 1,
     borderColor: palette.border,
@@ -129,31 +131,65 @@ const styles = StyleSheet.create({
   },
   card: {
     position: "relative",
-    borderRadius: 14,
+    borderRadius: 30,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(15,23,42,0.4)",
+    aspectRatio: 4 / 5,
   },
   cardSelected: {
     borderColor: palette.tint,
     shadowColor: palette.tint,
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
+    shadowOpacity: 0.35,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: 16 },
   },
   cardImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 12,
+    ...StyleSheet.absoluteFillObject,
+  },
+  cardGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(2, 6, 23, 0.35)",
+  },
+  scopeBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  scopeLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
+  },
+  lockBadge: {
+    position: "absolute",
+    top: "45%",
+    left: "45%",
+    width: 42,
+    height: 42,
+    borderRadius: 999,
+    backgroundColor: "rgba(6,78,59,0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardFooter: {
+    position: "absolute",
+    bottom: 14,
+    left: 12,
+    right: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
   },
   cardTitle: {
-    position: "absolute",
-    bottom: 4,
-    left: 4,
-    fontWeight: "600",
-    color: palette.card,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: palette.icon,
+    color: "#fff",
+    fontWeight: "700",
+    textAlign: "center",
   },
 });

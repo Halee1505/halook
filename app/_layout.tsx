@@ -21,6 +21,8 @@ export default function RootLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="editor" />
             <Stack.Screen name="share" />
+            <Stack.Screen name="presets" />
+            <Stack.Screen name="settings" />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </ThemeProvider>

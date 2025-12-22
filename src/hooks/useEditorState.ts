@@ -1,20 +1,18 @@
 import { create } from "zustand";
 
 import {
+  buildEditorAdjustmentsFromPreset,
   clampAdjustment,
   defaultAdjustments,
-  normalizeAdjustments,
 } from "@/src/engine/presetMath";
+import { CROP_OPTIONS } from "@/src/constants/cropOptions";
 import type { EditorStore } from "@/src/models/editor";
 import type { Preset, PresetAdjustment } from "@/src/models/presets";
 
 const normalizePreset = (preset?: Preset, adjustments?: PresetAdjustment) => {
-  if (adjustments) {
-    return normalizeAdjustments(adjustments);
-  }
-
-  if (preset?.adjustments) {
-    return normalizeAdjustments(preset.adjustments);
+  const presetAdjustments = adjustments ?? preset?.adjustments;
+  if (presetAdjustments) {
+    return buildEditorAdjustmentsFromPreset(presetAdjustments);
   }
 
   return { ...defaultAdjustments };
@@ -26,6 +24,7 @@ export const useEditorState = create<EditorStore>((set, get) => ({
   preset: undefined,
   adjustments: { ...defaultAdjustments },
   cropAspectRatio: null,
+  cropModeId: CROP_OPTIONS[0].id,
   presetIntensity: 1,
   setImageUri: (uri) => set({ imageUri: uri }),
   applyPreset: (preset, adjustments) => {
@@ -49,7 +48,20 @@ export const useEditorState = create<EditorStore>((set, get) => ({
       presetIntensity: 1,
     }),
   setBackgroundSource: (source) => set({ backgroundSource: source }),
-  setCropAspectRatio: (ratio) => set({ cropAspectRatio: ratio }),
+  setCropAspectRatio: (ratio, modeId) =>
+    set((state) => {
+      if (modeId) {
+        return { cropAspectRatio: ratio, cropModeId: modeId };
+      }
+      if (typeof ratio === "number") {
+        const match = CROP_OPTIONS.find((option) => option.ratio === ratio);
+        return {
+          cropAspectRatio: ratio,
+          cropModeId: match?.id ?? state.cropModeId,
+        };
+      }
+      return { cropAspectRatio: null };
+    }),
   setPresetIntensity: (value) =>
     set({
       presetIntensity: Math.min(1, Math.max(0, value)),
