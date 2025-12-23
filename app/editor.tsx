@@ -57,6 +57,46 @@ const ADJUSTMENT_UI: Record<
     subtitle: "Subtle color",
     icon: "auto-awesome",
   },
+  temperature: {
+    label: "Temperature",
+    subtitle: "Warm ↔ Cool",
+    icon: "wb-sunny",
+  },
+  tint: {
+    label: "Tint",
+    subtitle: "Magenta ↔ Green",
+    icon: "gradient",
+  },
+  mixerHue: {
+    label: "Hue Mixer",
+    subtitle: "Rotate colors",
+    icon: "palette",
+  },
+  mixerSaturation: {
+    label: "Mixer Saturation",
+    subtitle: "Mix intensity",
+    icon: "colorize",
+  },
+  mixerLuminance: {
+    label: "Mixer Lum.",
+    subtitle: "Mix brightness",
+    icon: "tonality",
+  },
+  gradingShadows: {
+    label: "Grade Shadows",
+    subtitle: "Lift/darken lows",
+    icon: "texture",
+  },
+  gradingMidtones: {
+    label: "Grade Mids",
+    subtitle: "Tone midrange",
+    icon: "filter-none",
+  },
+  gradingHighlights: {
+    label: "Grade Highlights",
+    subtitle: "Shape highs",
+    icon: "flare",
+  },
 };
 
 type NavId = "presets" | "adjust" | "crop" | "mask";

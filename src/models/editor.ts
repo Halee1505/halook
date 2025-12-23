@@ -9,6 +9,14 @@ export const adjustmentKeys = [
   'shadows',
   'saturation',
   'vibrance',
+  'temperature',
+  'tint',
+  'mixerHue',
+  'mixerSaturation',
+  'mixerLuminance',
+  'gradingShadows',
+  'gradingMidtones',
+  'gradingHighlights',
 ] as const;
 
 export type AdjustmentKey = (typeof adjustmentKeys)[number];

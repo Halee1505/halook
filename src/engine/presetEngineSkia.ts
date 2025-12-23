@@ -13,6 +13,14 @@ uniform float uHighlights;
 uniform float uShadows;
 uniform float uSaturation;
 uniform float uVibrance;
+uniform float uTemperature;
+uniform float uTint;
+uniform float uMixerHue;
+uniform float uMixerSaturation;
+uniform float uMixerLuminance;
+uniform float uGradeShadows;
+uniform float uGradeMidtones;
+uniform float uGradeHighlights;
 
 // Convert sRGB encoded components to linear light
 float3 srgbToLinear(float3 c) {
@@ -96,6 +104,80 @@ float3 addDither(float3 color, float2 xy) {
   return color + noise * amplitude;
 }
 
+float hueToRgb(float p, float q, float t) {
+  if (t < 0.0) t += 1.0;
+  if (t > 1.0) t -= 1.0;
+  if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;
+  if (t < 1.0/2.0) return q;
+  if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+  return p;
+}
+
+float3 hslToRgb(float3 hsl) {
+  float h = fract(hsl.x);
+  float s = clamp(hsl.y, 0.0, 1.0);
+  float l = clamp(hsl.z, 0.0, 1.0);
+  if (s < 0.00001) {
+    return float3(l, l, l);
+  }
+  float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+  float p = 2.0 * l - q;
+  float r = hueToRgb(p, q, h + 1.0/3.0);
+  float g = hueToRgb(p, q, h);
+  float b = hueToRgb(p, q, h - 1.0/3.0);
+  return float3(r, g, b);
+}
+
+float3 rgbToHsl(float3 color) {
+  float maxC = max(max(color.r, color.g), color.b);
+  float minC = min(min(color.r, color.g), color.b);
+  float h = 0.0;
+  float s = 0.0;
+  float l = 0.5 * (maxC + minC);
+  float d = maxC - minC;
+  if (d > 0.00001) {
+    s = d / (1.0 - abs(2.0 * l - 1.0));
+    if (maxC == color.r) {
+      h = ((color.g - color.b) / d + (color.g < color.b ? 6.0 : 0.0)) / 6.0;
+    } else if (maxC == color.g) {
+      h = ((color.b - color.r) / d + 2.0) / 6.0;
+    } else {
+      h = ((color.r - color.g) / d + 4.0) / 6.0;
+    }
+  }
+  return float3(h, s, l);
+}
+
+float3 applyTemperatureTint(float3 color, float temperature, float tint) {
+  float temp = clamp(temperature, -2.0, 2.0);
+  float tn = clamp(tint, -2.0, 2.0);
+  color.r += temp * 0.08;
+  color.b -= temp * 0.08;
+  color.g += tn * 0.06;
+  color.r -= tn * 0.03;
+  color.b -= tn * 0.03;
+  return color;
+}
+
+float3 applyColorGrading(float3 color, float gradeShadows, float gradeMids, float gradeHighlights) {
+  float L = luminance(color);
+  float shadowMask = 1.0 - smoothstep(0.2, 0.5, L);
+  float highlightMask = smoothstep(0.6, 0.9, L);
+  float midMask = clamp(1.0 - abs(2.0 * (L - 0.5)), 0.0, 1.0);
+  color += float3(gradeShadows) * shadowMask;
+  color += float3(gradeMids) * midMask;
+  color += float3(gradeHighlights) * highlightMask;
+  return color;
+}
+
+float3 applyHslMixer(float3 srgb, float hueShift, float satShift, float lumShift) {
+  float3 hsl = rgbToHsl(srgb);
+  hsl.x = fract(hsl.x + hueShift);
+  hsl.y = clamp(hsl.y * (1.0 + satShift), 0.0, 1.0);
+  hsl.z = clamp(hsl.z + lumShift, 0.0, 1.0);
+  return hslToRgb(hsl);
+}
+
 float4 main(float2 xy) {
   float4 base = inputImage.eval(xy);
   float4 bg   = backgroundImage.eval(xy);
@@ -108,10 +190,13 @@ float4 main(float2 xy) {
   linear = applyShadows(linear,   uShadows);
   linear = applySaturation(linear, uSaturation);
   linear = applyVibrance(linear,   uVibrance);
+  linear = applyTemperatureTint(linear, uTemperature, uTint);
+  linear = applyColorGrading(linear, uGradeShadows, uGradeMidtones, uGradeHighlights);
 
   linear = applyHighlightRollOff(linear);
 
   float3 srgb = linearToSrgb(linear);
+  srgb = applyHslMixer(srgb, uMixerHue, uMixerSaturation, uMixerLuminance);
   srgb = addDither(srgb, xy);
   srgb = clamp(srgb, 0.0, 1.0);
 
@@ -140,6 +225,14 @@ export const createPresetShader = (
     uniforms.uShadows,
     uniforms.uSaturation,
     uniforms.uVibrance,
+    uniforms.uTemperature,
+    uniforms.uTint,
+    uniforms.uMixerHue,
+    uniforms.uMixerSaturation,
+    uniforms.uMixerLuminance,
+    uniforms.uGradeShadows,
+    uniforms.uGradeMidtones,
+    uniforms.uGradeHighlights,
   ];
 
   // Thứ tự children phải khớp với thứ tự `uniform shader` trong SkSL

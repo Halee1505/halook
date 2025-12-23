@@ -5,12 +5,20 @@ export const adjustmentRanges: Record<
   AdjustmentKey,
   { min: number; max: number; step: number }
 > = {
-  exposure:   { min: -2, max: 2,   step: 0.1 },
-  contrast:   { min: 0.5, max: 2,  step: 0.05 },
-  highlights: { min: -1, max: 1,   step: 0.05 },
-  shadows:    { min: -1, max: 1,   step: 0.05 },
-  saturation: { min: 0.2, max: 2,  step: 0.05 },
-  vibrance:   { min: -1, max: 1,   step: 0.05 },
+  exposure:   { min: -2,   max: 2,   step: 0.1 },
+  contrast:   { min: 0.5,  max: 2,   step: 0.05 },
+  highlights: { min: -1,   max: 1,   step: 0.05 },
+  shadows:    { min: -1,   max: 1,   step: 0.05 },
+  saturation: { min: 0.2,  max: 2,   step: 0.05 },
+  vibrance:   { min: -1,   max: 1,   step: 0.05 },
+  temperature: { min: -2,  max: 2,   step: 0.05 },
+  tint:        { min: -2,  max: 2,   step: 0.05 },
+  mixerHue:        { min: -0.5, max: 0.5, step: 0.01 },
+  mixerSaturation: { min: -1,   max: 1,   step: 0.05 },
+  mixerLuminance:  { min: -0.5, max: 0.5, step: 0.02 },
+  gradingShadows:   { min: -0.5, max: 0.5, step: 0.02 },
+  gradingMidtones:  { min: -0.5, max: 0.5, step: 0.02 },
+  gradingHighlights:{ min: -0.5, max: 0.5, step: 0.02 },
 };
 
 export const defaultAdjustments: EditorAdjustments = {
@@ -20,6 +28,14 @@ export const defaultAdjustments: EditorAdjustments = {
   shadows: 0,
   saturation: 1,
   vibrance: 0,
+  temperature: 0,
+  tint: 0,
+  mixerHue: 0,
+  mixerSaturation: 0,
+  mixerLuminance: 0,
+  gradingShadows: 0,
+  gradingMidtones: 0,
+  gradingHighlights: 0,
 };
 
 // Basic XMP subset used for mapping into EditorAdjustments
@@ -62,6 +78,14 @@ const toneToEditorAdjustments = (tone: ToneAdjustments): EditorAdjustments => ({
   shadows: tone.shadows / 100,
   saturation: 1 + tone.saturation / 100,
   vibrance: tone.vibrance / 100,
+  temperature: 0,
+  tint: 0,
+  mixerHue: 0,
+  mixerSaturation: 0,
+  mixerLuminance: 0,
+  gradingShadows: 0,
+  gradingMidtones: 0,
+  gradingHighlights: 0,
 });
 
 const editorToToneAdjustments = (adjustments: EditorAdjustments): ToneAdjustments => ({
@@ -118,6 +142,14 @@ export const deriveAdjustmentsFromSeed = (seed: string): EditorAdjustments => {
     shadows:    rangeToValue('shadows',    0.79),
     saturation: rangeToValue('saturation', 0.91),
     vibrance:   rangeToValue('vibrance',   1.11),
+    temperature: 0,
+    tint: 0,
+    mixerHue: 0,
+    mixerSaturation: 0,
+    mixerLuminance: 0,
+    gradingShadows: 0,
+    gradingMidtones: 0,
+    gradingHighlights: 0,
   };
 };
 
@@ -149,6 +181,14 @@ export const mapXmpToAdjustments = (xmp: XmpBasicSettings): EditorAdjustments =>
     shadows,
     saturation,
     vibrance,
+    temperature: 0,
+    tint: 0,
+    mixerHue: 0,
+    mixerSaturation: 0,
+    mixerLuminance: 0,
+    gradingShadows: 0,
+    gradingMidtones: 0,
+    gradingHighlights: 0,
   };
 };
 
@@ -159,6 +199,14 @@ export const buildShaderUniforms = (adjustments: EditorAdjustments) => ({
   uShadows: adjustments.shadows,
   uSaturation: adjustments.saturation,
   uVibrance: adjustments.vibrance,
+  uTemperature: adjustments.temperature,
+  uTint: adjustments.tint,
+  uMixerHue: adjustments.mixerHue,
+  uMixerSaturation: adjustments.mixerSaturation,
+  uMixerLuminance: adjustments.mixerLuminance,
+  uGradeShadows: adjustments.gradingShadows,
+  uGradeMidtones: adjustments.gradingMidtones,
+  uGradeHighlights: adjustments.gradingHighlights,
 });
 
 const clampIntensity = (value: number) =>

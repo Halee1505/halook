@@ -18,6 +18,14 @@ const sliderConfig: Record<
   shadows: { label: 'Shadows', description: 'Dark detail', accent: '#073b4c' },
   saturation: { label: 'Saturation', description: 'Color richness', accent: '#ef476f' },
   vibrance: { label: 'Vibrance', description: 'Subtle color', accent: '#ffa69e' },
+  temperature: { label: 'Temperature', description: 'Warm ↔ Cool', accent: '#f4a261' },
+  tint: { label: 'Tint', description: 'Magenta ↔ Green', accent: '#81b29a' },
+  mixerHue: { label: 'Hue Mixer', description: 'Rotate colors', accent: '#9b5de5' },
+  mixerSaturation: { label: 'Mixer Saturation', description: 'Mix intensity', accent: '#f15bb5' },
+  mixerLuminance: { label: 'Mixer Luminance', description: 'Mix brightness', accent: '#00bbf9' },
+  gradingShadows: { label: 'Grade Shadows', description: 'Lift/darken lows', accent: '#3a86ff' },
+  gradingMidtones: { label: 'Grade Midtones', description: 'Shape mids', accent: '#7ac74f' },
+  gradingHighlights: { label: 'Grade Highlights', description: 'Tone highs', accent: '#ffb703' },
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
