@@ -90,7 +90,7 @@ export default function EditorScreen() {
   } = usePresetList();
   const { height: windowHeight } = useWindowDimensions();
   const editorPanelHeight = useMemo(
-    () => Math.max(windowHeight * 0.25, 260),
+    () => Math.max(windowHeight * 0.2, 220),
     [windowHeight]
   );
 
@@ -104,7 +104,12 @@ export default function EditorScreen() {
     }
 
     try {
-      const savedUri = await exportCanvasToCameraRoll(canvasRef);
+      const savedUri = await exportCanvasToCameraRoll({
+        imageUri,
+        adjustments,
+        intensity: presetIntensity,
+        cropAspectRatio,
+      });
       Alert.alert(
         "Lưu thành công",
         "Ảnh Halook của bạn đã có trong Camera Roll."
@@ -213,10 +218,26 @@ export default function EditorScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.sheetContent}
           >
-            <View style={styles.sheetHeader}>
-              <View>
+            <View style={styles.intensityCard}>
+              <View style={styles.intensityHeader}>
                 <Text style={styles.sheetLabel}>Presets</Text>
-                <Text style={styles.sheetTitle}>Pick your vibe</Text>
+                <Text style={styles.valueText}>
+                  {Math.round(presetIntensity * 100)}%
+                </Text>
+              </View>
+              <View style={styles.sliderWrapper}>
+                <ResettableSlider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={presetIntensity}
+                  step={0.01}
+                  minimumTrackTintColor={palette.tint}
+                  maximumTrackTintColor="rgba(255,255,255,0.25)"
+                  thumbTintColor="#fff"
+                  onValueChange={handlePresetIntensityChange}
+                  onDoubleTapReset={() => handlePresetIntensityChange(0)}
+                />
               </View>
             </View>
             {presetsLoading ? (
@@ -283,28 +304,6 @@ export default function EditorScreen() {
                 })}
               </ScrollView>
             )}
-            <View style={styles.intensityCard}>
-              <View style={styles.intensityHeader}>
-                <Text style={styles.intensityLabel}>Preset intensity</Text>
-                <Text style={styles.valueText}>
-                  {Math.round(presetIntensity * 100)}%
-                </Text>
-              </View>
-              <View style={styles.sliderWrapper}>
-                <ResettableSlider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={1}
-                  value={presetIntensity}
-                  step={0.01}
-                  minimumTrackTintColor={palette.tint}
-                  maximumTrackTintColor="rgba(255,255,255,0.25)"
-                  thumbTintColor="#fff"
-                  onValueChange={handlePresetIntensityChange}
-                  onDoubleTapReset={() => handlePresetIntensityChange(0)}
-                />
-              </View>
-            </View>
           </ScrollView>
         ) : (
           <ScrollView
@@ -424,7 +423,7 @@ type ResettableSliderProps = SliderProps & {
 };
 
 const CompareIcon = ({ active }: { active: boolean }) => (
-  <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
+  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
     <G clipPath="url(#compareClip)">
       <Path
         d="M13 3.99976H6C4.89543 3.99976 4 4.89519 4 5.99976V17.9998C4 19.1043 4.89543 19.9998 6 19.9998H13M17 3.99976H18C19.1046 3.99976 20 4.89519 20 5.99976V6.99976M20 16.9998V17.9998C20 19.1043 19.1046 19.9998 18 19.9998H17M20 10.9998V12.9998M12 1.99976V21.9998"
@@ -562,10 +561,10 @@ const styles = StyleSheet.create({
   },
   compareButton: {
     position: "absolute",
-    bottom: 36,
-    right: 36,
-    width: 54,
-    height: 54,
+    bottom: 0,
+    right: 10,
+    width: 46,
+    height: 46,
     borderRadius: 27,
     backgroundColor: "rgba(15,23,42,0.85)",
     borderWidth: 1,
@@ -591,20 +590,19 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.06)",
   },
   sheetContent: {
-    gap: 16,
-    paddingBottom: 24,
+    gap: 8,
+    paddingBottom: 10,
   },
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    marginBottom: 4,
   },
   sheetLabel: {
     color: palette.tint,
     textTransform: "uppercase",
-    fontSize: 10,
+    fontSize: 14,
     letterSpacing: 3,
+    marginBottom: 4,
   },
   sheetTitle: {
     color: "#fff",
@@ -612,8 +610,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   valuePill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 999,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
@@ -624,9 +623,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
-  sliderWrapper: {
-    paddingVertical: 4,
-  },
+  sliderWrapper: {},
   slider: {
     width: "100%",
     height: 32,
@@ -665,10 +662,8 @@ const styles = StyleSheet.create({
   },
   intensityCard: {
     borderRadius: 24,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-    backgroundColor: "rgba(255,255,255,0.02)",
+    paddingHorizontal: 16,
+    width: "100%",
     gap: 12,
   },
   intensityHeader: {
