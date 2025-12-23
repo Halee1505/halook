@@ -19,7 +19,12 @@ import {
   applyPresetIntensity,
   buildShaderUniforms,
 } from "@/src/engine/presetMath";
-import type { EditorAdjustments } from "@/src/models/editor";
+import {
+  clampCropRect,
+  DEFAULT_CROP_RECT,
+  isFullscreenCrop,
+} from "@/src/engine/cropMath";
+import type { CropRect, EditorAdjustments } from "@/src/models/editor";
 import { presetRuntimeEffect, createPresetShader } from "@/src/engine/presetEngineSkia";
 
 const dateStamp = () => new Date().toISOString().replace(/[:.]/g, "-");
@@ -29,6 +34,7 @@ type ExportOptions = {
   adjustments: EditorAdjustments;
   intensity: number;
   cropAspectRatio: number | null;
+  cropRect?: CropRect;
 };
 
 export const exportCanvasToCameraRoll = async ({
@@ -36,9 +42,10 @@ export const exportCanvasToCameraRoll = async ({
   adjustments,
   intensity,
   cropAspectRatio,
+  cropRect,
 }: ExportOptions) => {
   const sourceImage = await loadSkImage(imageUri);
-  const target = cropImage(sourceImage, cropAspectRatio);
+  const target = cropImage(sourceImage, cropRect);
   const processed = renderWithAdjustments(target, adjustments, intensity);
   const base64 = processed.encodeToBase64(ImageFormat.JPEG, 94);
   if (!base64) {
@@ -73,39 +80,18 @@ const loadSkImage = async (uri: string): Promise<SkImage> => {
   return fallbackImage;
 };
 
-const cropImage = (image: SkImage, aspectRatio: number | null) => {
-  if (!aspectRatio) {
+const cropImage = (image: SkImage, rect?: CropRect | null) => {
+  const normalized = clampCropRect(rect ?? DEFAULT_CROP_RECT);
+  if (isFullscreenCrop(normalized)) {
     return image;
   }
   const width = image.width();
   const height = image.height();
-  const currentAspect = width / height;
-  if (Math.abs(currentAspect - aspectRatio) < 0.0001) {
-    return image;
-  }
-
-  if (currentAspect > aspectRatio) {
-    const targetWidth = Math.max(
-      1,
-      Math.round(height * aspectRatio)
-    );
-    const offsetX = Math.max(0, Math.floor((width - targetWidth) / 2));
-    const subset = makeSubset(image, {
-      x: offsetX,
-      y: 0,
-      width: targetWidth,
-      height,
-    });
-    return subset ?? image;
-  }
-
-  const targetHeight = Math.max(1, Math.round(width / aspectRatio));
-  const offsetY = Math.max(0, Math.floor((height - targetHeight) / 2));
   const subset = makeSubset(image, {
-    x: 0,
-    y: offsetY,
-    width,
-    height: targetHeight,
+    x: Math.round(normalized.x * width),
+    y: Math.round(normalized.y * height),
+    width: Math.max(1, Math.round(normalized.w * width)),
+    height: Math.max(1, Math.round(normalized.h * height)),
   });
   return subset ?? image;
 };
@@ -122,7 +108,13 @@ const makeSubset = (
   if (!subsetFn) {
     return null;
   }
-  return subsetFn.call(image, rect);
+  const safeRect = {
+    x: Math.max(0, Math.min(image.width() - 1, rect.x)),
+    y: Math.max(0, Math.min(image.height() - 1, rect.y)),
+    width: Math.max(1, Math.min(image.width() - rect.x, rect.width)),
+    height: Math.max(1, Math.min(image.height() - rect.y, rect.height)),
+  };
+  return subsetFn.call(image, safeRect);
 };
 
 const renderWithAdjustments = (
@@ -157,7 +149,8 @@ const renderWithAdjustments = (
     paint.setShader(shader);
     canvas.drawPaint(paint);
   } else {
-    canvas.drawImage(image, 0, 0, paint);
+    const rect = Skia.XYWHRect(0, 0, width, height);
+    canvas.drawImageRectCubic(image, rect, rect, 0, 0, paint);
   }
 
   const snapshot = surface.makeImageSnapshot();

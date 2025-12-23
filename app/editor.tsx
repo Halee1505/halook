@@ -3,7 +3,7 @@ import Slider, { type SliderProps } from "@react-native-community/slider";
 import { useCanvasRef } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,11 +16,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { ClipPath, Defs, G, Path, Rect } from "react-native-svg";
 
 import { Colors } from "@/constants/theme";
-import { CropRatioSheet } from "@/src/components/CropRatioSheet";
+import { CropOverlay } from "@/src/components/CropOverlay";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
+import { CROP_OPTIONS } from "@/src/constants/cropOptions";
 import { adjustmentRanges } from "@/src/engine/presetMath";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { usePresetList } from "@/src/hooks/usePresets";
@@ -68,6 +68,7 @@ export default function EditorScreen() {
   const adjustments = useEditorState((state) => state.adjustments);
   const updateAdjustment = useEditorState((state) => state.updateAdjustment);
   const cropAspectRatio = useEditorState((state) => state.cropAspectRatio);
+  const cropModeId = useEditorState((state) => state.cropModeId);
   const presetIntensity = useEditorState((state) => state.presetIntensity);
   const setPresetIntensity = useEditorState(
     (state) => state.setPresetIntensity
@@ -76,12 +77,31 @@ export default function EditorScreen() {
     (state) => state.setCropAspectRatio
   );
   const applyPreset = useEditorState((state) => state.applyPreset);
+  const cropRectNormalized = useEditorState(
+    (state) => state.cropRectNormalized
+  );
+  const setCropRectNormalized = useEditorState(
+    (state) => state.setCropRectNormalized
+  );
+  const setCropState = useEditorState((state) => state.setCropState);
   const currentPresetId = useEditorState((state) => state.preset?._id);
   const [activeAdjustment, setActiveAdjustment] =
     useState<AdjustmentKey>("exposure");
   const [activeNav, setActiveNav] = useState<NavId>("adjust");
-  const [isCropSheetVisible, setCropSheetVisible] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
+  const [cropSession, setCropSession] = useState<{
+    rect: typeof cropRectNormalized;
+    ratio: number | null;
+    modeId: string;
+  } | null>(null);
+  const [imageRect, setImageRect] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    pageX: number;
+    pageY: number;
+  } | null>(null);
   const {
     presets,
     loading: presetsLoading,
@@ -93,6 +113,28 @@ export default function EditorScreen() {
     () => Math.max(windowHeight * 0.2, 220),
     [windowHeight]
   );
+
+  const cropStateRef = useRef({
+    rect: cropRectNormalized,
+    ratio: cropAspectRatio,
+    modeId: cropModeId,
+  });
+
+  useEffect(() => {
+    cropStateRef.current = {
+      rect: cropRectNormalized,
+      ratio: cropAspectRatio,
+      modeId: cropModeId,
+    };
+  }, [cropRectNormalized, cropAspectRatio, cropModeId]);
+
+  useEffect(() => {
+    if (activeNav === "crop") {
+      setCropSession(cropStateRef.current);
+    } else {
+      setCropSession(null);
+    }
+  }, [activeNav]);
 
   const activeRange = adjustmentRanges[activeAdjustment];
   const activeValue = adjustments[activeAdjustment];
@@ -109,6 +151,7 @@ export default function EditorScreen() {
         adjustments,
         intensity: presetIntensity,
         cropAspectRatio,
+        cropRect: cropRectNormalized,
       });
       Alert.alert(
         "Lưu thành công",
@@ -130,10 +173,6 @@ export default function EditorScreen() {
   };
 
   const handleNavPress = (id: NavId) => {
-    if (id === "crop") {
-      setCropSheetVisible(true);
-      return;
-    }
     if (id === "mask") {
       Alert.alert("Sắp ra mắt", "Tính năng mask đang được hoàn thiện.");
       return;
@@ -153,6 +192,18 @@ export default function EditorScreen() {
   const handlePresetSelect = (preset: Preset) => {
     applyPreset(preset);
     setActiveNav("presets");
+  };
+
+  const handleCancelCrop = () => {
+    if (cropSession) {
+      setCropState(cropSession.rect, cropSession.ratio, cropSession.modeId);
+    }
+    setActiveNav("adjust");
+  };
+
+  const handleApplyCrop = () => {
+    setCropState(cropRectNormalized, cropAspectRatio, cropModeId);
+    setActiveNav("adjust");
   };
 
   return (
@@ -199,6 +250,8 @@ export default function EditorScreen() {
           cropAspectRatio={cropAspectRatio}
           intensity={presetIntensity}
           showOriginal={isComparing}
+          cropRectNormalized={cropRectNormalized}
+          onImageRectChange={(rect) => setImageRect(rect)}
         />
         <TouchableOpacity
           style={[
@@ -209,11 +262,75 @@ export default function EditorScreen() {
           onPressOut={() => setIsComparing(false)}
           delayLongPress={0}
         >
-          <CompareIcon active={isComparing} />
+          <MaterialIcons
+            name="compare"
+            size={24}
+            color={isComparing ? palette.tint : "rgba(255,255,255,0.6)"}
+          />
         </TouchableOpacity>
       </View>
       <View style={[styles.bottomSheet, { height: editorPanelHeight }]}>
-        {activeNav === "presets" ? (
+        {activeNav === "crop" ? (
+          <View style={styles.cropPanel}>
+            <View style={styles.sheetHeader}>
+              <View>
+                <Text style={styles.sheetLabel}>Crop frame</Text>
+                <Text style={styles.cropHint}>
+                  Pinch or drag handles to resize. Drag inside frame to move.
+                </Text>
+              </View>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cropRow}
+            >
+              {CROP_OPTIONS.map((option) => {
+                const isActive = option.id === cropModeId;
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[styles.cropItem, isActive && styles.cropItemActive]}
+                    onPress={() =>
+                      setCropAspectRatio(option.ratio ?? null, option.id)
+                    }
+                  >
+                    <MaterialIcons
+                      name={option.icon}
+                      size={24}
+                      color={
+                        isActive ? palette.background : "rgba(255,255,255,0.7)"
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.cropLabel,
+                        isActive && styles.cropLabelActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <View style={styles.cropActions}>
+              <TouchableOpacity
+                style={styles.cropButtonSecondary}
+                onPress={handleCancelCrop}
+              >
+                <MaterialIcons name="close" size={24} color="#f8fafc" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cropButtonPrimary}
+                onPress={handleApplyCrop}
+              >
+                <MaterialIcons name="check" size={24} color={palette.tint} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : activeNav === "presets" ? (
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.sheetContent}
@@ -407,13 +524,16 @@ export default function EditorScreen() {
           );
         })}
       </View>
-      <CropRatioSheet
-        visible={isCropSheetVisible}
-        onClose={() => setCropSheetVisible(false)}
-        onApply={(option) =>
-          setCropAspectRatio(option.ratio ?? null, option.id)
-        }
-      />
+      {activeNav === "crop" && imageRect && (
+        <CropOverlay
+          imageRectOnScreen={imageRect}
+          cropRectNormalized={cropRectNormalized}
+          onChange={setCropRectNormalized}
+          onChangeEnd={setCropRectNormalized}
+          minSizeNormalized={0.08}
+          enabled
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -422,24 +542,24 @@ type ResettableSliderProps = SliderProps & {
   onDoubleTapReset?: () => void;
 };
 
-const CompareIcon = ({ active }: { active: boolean }) => (
-  <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-    <G clipPath="url(#compareClip)">
-      <Path
-        d="M13 3.99976H6C4.89543 3.99976 4 4.89519 4 5.99976V17.9998C4 19.1043 4.89543 19.9998 6 19.9998H13M17 3.99976H18C19.1046 3.99976 20 4.89519 20 5.99976V6.99976M20 16.9998V17.9998C20 19.1043 19.1046 19.9998 18 19.9998H17M20 10.9998V12.9998M12 1.99976V21.9998"
-        stroke={active ? "#04120b" : "#e2e8f0"}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </G>
-    <Defs>
-      <ClipPath id="compareClip">
-        <Rect width={24} height={24} fill="white" />
-      </ClipPath>
-    </Defs>
-  </Svg>
-);
+const CompareIcon = ({ active }: { active: boolean }) => {
+  const color = active ? "#04120b" : "#e2e8f0";
+  const faint = active ? "#04120b" : "rgba(226,232,240,0.75)";
+  return (
+    <View style={styles.compareIcon}>
+      <View style={[styles.compareBar, { borderColor: color }]} />
+      <View style={styles.compareDashes}>
+        <View style={[styles.compareDashLong, { backgroundColor: color }]} />
+        {[0, 1, 2].map((i) => (
+          <View
+            key={i}
+            style={[styles.compareDash, { backgroundColor: faint }]}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
 
 const ResettableSlider = ({
   onDoubleTapReset,
@@ -580,6 +700,32 @@ const styles = StyleSheet.create({
     backgroundColor: palette.tint,
     borderColor: "rgba(48,232,119,0.5)",
   },
+  compareIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  compareBar: {
+    width: 14,
+    height: 32,
+    borderWidth: 3,
+    borderRadius: 9,
+  },
+  compareDashes: {
+    justifyContent: "space-between",
+    height: 32,
+    paddingVertical: 3,
+  },
+  compareDashLong: {
+    width: 10,
+    height: 4,
+    borderRadius: 2,
+  },
+  compareDash: {
+    width: 8,
+    height: 4,
+    borderRadius: 2,
+  },
   bottomSheet: {
     marginTop: 12,
     backgroundColor: "rgba(8,16,12,0.9)",
@@ -627,6 +773,71 @@ const styles = StyleSheet.create({
   slider: {
     width: "100%",
     height: 32,
+  },
+  cropPanel: {
+    gap: 16,
+  },
+  cropRow: {
+    flexDirection: "row",
+    gap: 10,
+    paddingVertical: 4,
+  },
+  cropItem: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(255,255,255,0.02)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  cropItemActive: {
+    borderColor: palette.tint,
+    backgroundColor: "rgba(48,232,119,0.12)",
+  },
+  cropLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  cropLabelActive: {
+    color: palette.background,
+  },
+  cropHint: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+  },
+  cropActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  cropButtonSecondary: {
+    flex: 1,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cropButtonSecondaryLabel: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  cropButtonPrimary: {
+    flex: 1,
+    height: 44,
+    borderRadius: 14,
+    borderColor: palette.tint,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cropButtonPrimaryLabel: {
+    color: "#04120b",
+    fontWeight: "700",
   },
   adjustmentRow: {
     flexDirection: "row",

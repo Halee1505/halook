@@ -1,10 +1,10 @@
-import type { MaterialIconsGlyphs } from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export type CropOption = {
   id: string;
   label: string;
   ratio: number | null;
-  icon: MaterialIconsGlyphs;
+  icon: keyof typeof MaterialIcons.glyphMap;
   description?: string;
 };
 

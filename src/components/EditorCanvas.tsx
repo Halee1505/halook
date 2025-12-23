@@ -1,9 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, type LayoutChangeEvent, View } from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  LayoutRectangle,
+  StyleSheet,
+  type LayoutChangeEvent,
+  View,
+} from "react-native";
 
 import {
   Canvas,
   Fill,
+  Group,
   Image as SkiaImage,
   ImageShader,
   Shader,
@@ -15,7 +27,8 @@ import {
 import { EncodingType, readAsStringAsync } from "expo-file-system/legacy";
 
 import { applyPresetIntensity, buildShaderUniforms } from "@/src/engine/presetMath";
-import type { EditorAdjustments } from "@/src/models/editor";
+import { clampCropRect, isFullscreenCrop } from "@/src/engine/cropMath";
+import type { EditorAdjustments, CropRect } from "@/src/models/editor";
 import { presetRuntimeEffect } from "../engine/presetEngineSkia";
 
 type CanvasRef = ReturnType<typeof useCanvasRef>;
@@ -27,6 +40,10 @@ type Props = {
   cropAspectRatio?: number | null;
   intensity?: number;
   showOriginal?: boolean;
+  cropRectNormalized?: CropRect;
+  onImageRectChange?: (
+    rect: LayoutRectangle & { pageX: number; pageY: number }
+  ) => void;
 };
 
 type Size = { width: number; height: number };
@@ -111,6 +128,8 @@ export const EditorCanvas = ({
   cropAspectRatio,
   intensity = 1,
   showOriginal = false,
+  cropRectNormalized,
+  onImageRectChange,
 }: Props) => {
   const image = useSkiaImage(imageUri ?? null);
 
@@ -118,6 +137,26 @@ export const EditorCanvas = ({
     width: 0,
     height: 0,
   });
+
+  const innerRef = useRef<View>(null);
+  const reportLayout = useCallback(() => {
+    if (!onImageRectChange || !innerRef.current) {
+      return;
+    }
+    innerRef.current.measure((x, y, width, height, pageX, pageY) => {
+      if (!width || !height) {
+        return;
+      }
+      onImageRectChange({
+        x,
+        y,
+        width,
+        height,
+        pageX,
+        pageY,
+      });
+    });
+  }, [onImageRectChange]);
 
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -127,7 +166,8 @@ export const EditorCanvas = ({
       }
       return { width, height };
     });
-  }, []);
+    reportLayout();
+  }, [reportLayout]);
 
   const uniforms = useMemo(
     () => {
@@ -145,7 +185,21 @@ export const EditorCanvas = ({
   );
 
   const imageAspect = image ? image.width() / image.height() : 3 / 4;
-  const targetAspect = cropAspectRatio ?? imageAspect;
+  const effectiveCrop = useMemo(() => {
+    if (!cropRectNormalized) {
+      return clampCropRect({ x: 0, y: 0, w: 1, h: 1 });
+    }
+    return clampCropRect(cropRectNormalized);
+  }, [cropRectNormalized]);
+  const croppedAspect = useMemo(() => {
+    if (!image) {
+      return imageAspect;
+    }
+    return imageAspect * (effectiveCrop.w / effectiveCrop.h);
+  }, [effectiveCrop.h, effectiveCrop.w, image, imageAspect]);
+  const targetAspect = isFullscreenCrop(effectiveCrop)
+    ? cropAspectRatio ?? imageAspect
+    : cropAspectRatio ?? croppedAspect;
   const fittedSize = useMemo(
     () => fitWithinBounds(containerSize, targetAspect),
     [containerSize, targetAspect]
@@ -154,11 +208,31 @@ export const EditorCanvas = ({
   const hasEffect = !!presetRuntimeEffect;
   const shouldRenderAdjusted = hasEffect && !showOriginal;
   const canRender =
-    !!image && fittedSize.width > 0 && fittedSize.height > 0;
+    !!image &&
+    fittedSize.width > 0 &&
+    fittedSize.height > 0 &&
+    (hasEffect || showOriginal);
+
+  const clipRect = useMemo(() => {
+    if (isFullscreenCrop(effectiveCrop)) {
+      return null;
+    }
+    return {
+      x: effectiveCrop.x * fittedSize.width,
+      y: effectiveCrop.y * fittedSize.height,
+      width: effectiveCrop.w * fittedSize.width,
+      height: effectiveCrop.h * fittedSize.height,
+    };
+  }, [effectiveCrop, fittedSize.height, fittedSize.width]);
+
+  useEffect(() => {
+    reportLayout();
+  }, [reportLayout, fittedSize.height, fittedSize.width]);
 
   return (
     <View style={styles.outer} onLayout={handleLayout}>
       <View
+        ref={innerRef}
         style={[
           styles.canvasWrapper,
           { width: fittedSize.width, height: fittedSize.height },
@@ -166,6 +240,7 @@ export const EditorCanvas = ({
       >
         {canRender && image ? (
           <Canvas ref={canvasRef} style={StyleSheet.absoluteFill}>
+            <Group clip={clipRect ?? undefined}>
             {shouldRenderAdjusted ? (
               <Fill>
                 <Shader source={presetRuntimeEffect!} uniforms={uniforms}>
@@ -201,6 +276,7 @@ export const EditorCanvas = ({
                 height={fittedSize.height}
               />
             )}
+            </Group>
           </Canvas>
         ) : (
           <View style={styles.placeholder} />
