@@ -4,6 +4,7 @@ import { StyleSheet, type LayoutChangeEvent, View } from "react-native";
 import {
   Canvas,
   Fill,
+  Image as SkiaImage,
   ImageShader,
   Shader,
   Skia,
@@ -25,6 +26,7 @@ type Props = {
   canvasRef: CanvasRef;
   cropAspectRatio?: number | null;
   intensity?: number;
+  showOriginal?: boolean;
 };
 
 type Size = { width: number; height: number };
@@ -108,6 +110,7 @@ export const EditorCanvas = ({
   canvasRef,
   cropAspectRatio,
   intensity = 1,
+  showOriginal = false,
 }: Props) => {
   const image = useSkiaImage(imageUri ?? null);
 
@@ -148,11 +151,10 @@ export const EditorCanvas = ({
     [containerSize, targetAspect]
   );
 
+  const hasEffect = !!presetRuntimeEffect;
+  const shouldRenderAdjusted = hasEffect && !showOriginal;
   const canRender =
-    !!image &&
-    !!presetRuntimeEffect &&
-    fittedSize.width > 0 &&
-    fittedSize.height > 0;
+    !!image && fittedSize.width > 0 && fittedSize.height > 0;
 
   return (
     <View style={styles.outer} onLayout={handleLayout}>
@@ -162,32 +164,43 @@ export const EditorCanvas = ({
           { width: fittedSize.width, height: fittedSize.height },
         ]}
       >
-        {canRender && image && presetRuntimeEffect ? (
+        {canRender && image ? (
           <Canvas ref={canvasRef} style={StyleSheet.absoluteFill}>
-            <Fill>
-              <Shader source={presetRuntimeEffect} uniforms={uniforms}>
-                <ImageShader
-                  image={image}
-                  fit="cover"
-                  rect={{
-                    x: 0,
-                    y: 0,
-                    width: fittedSize.width,
-                    height: fittedSize.height,
-                  }}
-                />
-                <ImageShader
-                  image={image}
-                  fit="cover"
-                  rect={{
-                    x: 0,
-                    y: 0,
-                    width: fittedSize.width,
-                    height: fittedSize.height,
-                  }}
-                />
-              </Shader>
-            </Fill>
+            {shouldRenderAdjusted ? (
+              <Fill>
+                <Shader source={presetRuntimeEffect!} uniforms={uniforms}>
+                  <ImageShader
+                    image={image}
+                    fit="cover"
+                    rect={{
+                      x: 0,
+                      y: 0,
+                      width: fittedSize.width,
+                      height: fittedSize.height,
+                    }}
+                  />
+                  <ImageShader
+                    image={image}
+                    fit="cover"
+                    rect={{
+                      x: 0,
+                      y: 0,
+                      width: fittedSize.width,
+                      height: fittedSize.height,
+                    }}
+                  />
+                </Shader>
+              </Fill>
+            ) : (
+              <SkiaImage
+                image={image}
+                fit="cover"
+                x={0}
+                y={0}
+                width={fittedSize.width}
+                height={fittedSize.height}
+              />
+            )}
           </Canvas>
         ) : (
           <View style={styles.placeholder} />

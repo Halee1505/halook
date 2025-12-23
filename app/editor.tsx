@@ -1,9 +1,11 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Slider, { type SliderProps } from "@react-native-community/slider";
 import { useCanvasRef } from "@shopify/react-native-skia";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   GestureResponderEvent,
   ScrollView,
@@ -14,13 +16,16 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { ClipPath, Defs, G, Path, Rect } from "react-native-svg";
 
 import { Colors } from "@/constants/theme";
 import { CropRatioSheet } from "@/src/components/CropRatioSheet";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
 import { adjustmentRanges } from "@/src/engine/presetMath";
 import { useEditorState } from "@/src/hooks/useEditorState";
+import { usePresetList } from "@/src/hooks/usePresets";
 import { adjustmentKeys, type AdjustmentKey } from "@/src/models/editor";
+import type { Preset } from "@/src/models/presets";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
 
 const palette = Colors.light;
@@ -70,10 +75,19 @@ export default function EditorScreen() {
   const setCropAspectRatio = useEditorState(
     (state) => state.setCropAspectRatio
   );
+  const applyPreset = useEditorState((state) => state.applyPreset);
+  const currentPresetId = useEditorState((state) => state.preset?._id);
   const [activeAdjustment, setActiveAdjustment] =
     useState<AdjustmentKey>("exposure");
   const [activeNav, setActiveNav] = useState<NavId>("adjust");
   const [isCropSheetVisible, setCropSheetVisible] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const {
+    presets,
+    loading: presetsLoading,
+    error: presetsError,
+    reload: reloadPresets,
+  } = usePresetList();
   const { height: windowHeight } = useWindowDimensions();
   const editorPanelHeight = useMemo(
     () => Math.max(windowHeight * 0.25, 260),
@@ -111,14 +125,15 @@ export default function EditorScreen() {
   };
 
   const handleNavPress = (id: NavId) => {
-    setActiveNav(id);
-    if (id === "presets") {
-      router.push("/presets");
-    } else if (id === "crop") {
+    if (id === "crop") {
       setCropSheetVisible(true);
-    } else if (id === "mask") {
-      Alert.alert("Sắp ra mắt", "Tính năng mask đang được hoàn thiện.");
+      return;
     }
+    if (id === "mask") {
+      Alert.alert("Sắp ra mắt", "Tính năng mask đang được hoàn thiện.");
+      return;
+    }
+    setActiveNav(id);
   };
 
   const formattedValue = useMemo(() => {
@@ -128,6 +143,11 @@ export default function EditorScreen() {
 
   const handlePresetIntensityChange = (value: number) => {
     setPresetIntensity(parseFloat(value.toFixed(2)));
+  };
+
+  const handlePresetSelect = (preset: Preset) => {
+    applyPreset(preset);
+    setActiveNav("presets");
   };
 
   return (
@@ -173,104 +193,193 @@ export default function EditorScreen() {
           adjustments={adjustments}
           cropAspectRatio={cropAspectRatio}
           intensity={presetIntensity}
+          showOriginal={isComparing}
         />
-      </View>
-      <TouchableOpacity style={styles.compareButton}>
-        <MaterialIcons name="visibility" size={16} color="#e2e8f0" />
-        <Text style={styles.compareLabel}>Hold to Compare</Text>
-      </TouchableOpacity>
-      <View style={[styles.bottomSheet, { height: editorPanelHeight }]}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.sheetContent}
+        <TouchableOpacity
+          style={[
+            styles.compareButton,
+            isComparing && styles.compareButtonActive,
+          ]}
+          onPressIn={() => setIsComparing(true)}
+          onPressOut={() => setIsComparing(false)}
+          delayLongPress={0}
         >
-          <View style={styles.sheetHeader}>
-            <View>
-              <Text style={styles.sheetLabel}>Adjustment</Text>
-              <Text style={styles.sheetTitle}>
-                {ADJUSTMENT_UI[activeAdjustment].label}
-              </Text>
-            </View>
-            <View style={styles.valuePill}>
-              <Text style={styles.valueText}>{formattedValue}</Text>
-            </View>
-          </View>
-          <View style={styles.sliderWrapper}>
-            <ResettableSlider
-              style={styles.slider}
-              minimumValue={activeRange.min}
-              maximumValue={activeRange.max}
-              value={activeValue}
-              step={0.01}
-              minimumTrackTintColor={palette.tint}
-              maximumTrackTintColor="rgba(255,255,255,0.25)"
-              thumbTintColor="#f8fafc"
-              onValueChange={handleSliderChange}
-              onDoubleTapReset={() => handleSliderChange(0)}
-            />
-          </View>
+          <CompareIcon active={isComparing} />
+        </TouchableOpacity>
+      </View>
+      <View style={[styles.bottomSheet, { height: editorPanelHeight }]}>
+        {activeNav === "presets" ? (
           <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.adjustmentRow}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetContent}
           >
-            {adjustmentKeys.map((key) => {
-              const config = ADJUSTMENT_UI[key];
-              const isActive = key === activeAdjustment;
-              return (
+            <View style={styles.sheetHeader}>
+              <View>
+                <Text style={styles.sheetLabel}>Presets</Text>
+                <Text style={styles.sheetTitle}>Pick your vibe</Text>
+              </View>
+            </View>
+            {presetsLoading ? (
+              <View style={styles.presetLoading}>
+                <ActivityIndicator color={palette.tint} />
+                <Text style={styles.presetInfo}>Đang tải preset...</Text>
+              </View>
+            ) : presetsError ? (
+              <View style={styles.presetErrorCard}>
+                <Text style={styles.presetInfo}>
+                  Không thể tải preset. {presetsError}
+                </Text>
                 <TouchableOpacity
-                  key={key}
-                  style={styles.adjustmentItem}
-                  onPress={() => setActiveAdjustment(key)}
+                  style={styles.retryButton}
+                  onPress={reloadPresets}
                 >
-                  <View
-                    style={[
-                      styles.adjustmentIcon,
-                      isActive && styles.adjustmentIconActive,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name={config.icon}
-                      size={24}
-                      color={isActive ? palette.tint : "rgba(255,255,255,0.6)"}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.adjustmentLabel,
-                      isActive && styles.adjustmentLabelActive,
-                    ]}
-                  >
-                    {config.label}
-                  </Text>
+                  <Text style={styles.retryLabel}>Thử lại</Text>
                 </TouchableOpacity>
-              );
-            })}
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.presetRow}
+              >
+                {presets.map((preset) => {
+                  const isActive = preset._id === currentPresetId;
+                  return (
+                    <TouchableOpacity
+                      key={preset._id}
+                      style={[
+                        styles.presetItem,
+                        isActive && styles.presetItemActive,
+                      ]}
+                      onPress={() => handlePresetSelect(preset)}
+                    >
+                      <View
+                        style={[
+                          styles.presetThumbWrapper,
+                          isActive && styles.presetThumbWrapperActive,
+                        ]}
+                      >
+                        <Image
+                          source={
+                            preset.previewUrl
+                              ? { uri: preset.previewUrl }
+                              : require("../assets/images/icon.png")
+                          }
+                          style={styles.presetThumb}
+                          contentFit="cover"
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.presetLabel,
+                          isActive && styles.presetLabelActive,
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {preset.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+            <View style={styles.intensityCard}>
+              <View style={styles.intensityHeader}>
+                <Text style={styles.intensityLabel}>Preset intensity</Text>
+                <Text style={styles.valueText}>
+                  {Math.round(presetIntensity * 100)}%
+                </Text>
+              </View>
+              <View style={styles.sliderWrapper}>
+                <ResettableSlider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={presetIntensity}
+                  step={0.01}
+                  minimumTrackTintColor={palette.tint}
+                  maximumTrackTintColor="rgba(255,255,255,0.25)"
+                  thumbTintColor="#fff"
+                  onValueChange={handlePresetIntensityChange}
+                  onDoubleTapReset={() => handlePresetIntensityChange(0)}
+                />
+              </View>
+            </View>
           </ScrollView>
-          <View style={styles.intensityCard}>
-            <View style={styles.intensityHeader}>
-              <Text style={styles.intensityLabel}>Preset intensity</Text>
-              <Text style={styles.valueText}>
-                {Math.round(presetIntensity * 100)}%
-              </Text>
+        ) : (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetContent}
+          >
+            <View style={styles.sheetHeader}>
+              <View>
+                <Text style={styles.sheetLabel}>Adjustment</Text>
+                <Text style={styles.sheetTitle}>
+                  {ADJUSTMENT_UI[activeAdjustment].label}
+                </Text>
+              </View>
+              <View style={styles.valuePill}>
+                <Text style={styles.valueText}>{formattedValue}</Text>
+              </View>
             </View>
             <View style={styles.sliderWrapper}>
               <ResettableSlider
                 style={styles.slider}
-                minimumValue={0}
-                maximumValue={1}
-                value={presetIntensity}
+                minimumValue={activeRange.min}
+                maximumValue={activeRange.max}
+                value={activeValue}
                 step={0.01}
                 minimumTrackTintColor={palette.tint}
                 maximumTrackTintColor="rgba(255,255,255,0.25)"
-                thumbTintColor="#fff"
-                onValueChange={handlePresetIntensityChange}
-                onDoubleTapReset={() => handlePresetIntensityChange(0)}
+                thumbTintColor="#f8fafc"
+                onValueChange={handleSliderChange}
+                onDoubleTapReset={() => handleSliderChange(0)}
               />
             </View>
-          </View>
-        </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.adjustmentRow}
+            >
+              {adjustmentKeys.map((key) => {
+                const config = ADJUSTMENT_UI[key];
+                const isActive = key === activeAdjustment;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={styles.adjustmentItem}
+                    onPress={() => setActiveAdjustment(key)}
+                  >
+                    <View
+                      style={[
+                        styles.adjustmentIcon,
+                        isActive && styles.adjustmentIconActive,
+                      ]}
+                    >
+                      <MaterialIcons
+                        name={config.icon}
+                        size={24}
+                        color={
+                          isActive ? palette.tint : "rgba(255,255,255,0.6)"
+                        }
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.adjustmentLabel,
+                        isActive && styles.adjustmentLabelActive,
+                      ]}
+                    >
+                      {config.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </ScrollView>
+        )}
       </View>
+
       <View style={styles.navRow}>
         {[
           { id: "presets", icon: "filter-vintage", label: "Presets" },
@@ -313,6 +422,25 @@ export default function EditorScreen() {
 type ResettableSliderProps = SliderProps & {
   onDoubleTapReset?: () => void;
 };
+
+const CompareIcon = ({ active }: { active: boolean }) => (
+  <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
+    <G clipPath="url(#compareClip)">
+      <Path
+        d="M13 3.99976H6C4.89543 3.99976 4 4.89519 4 5.99976V17.9998C4 19.1043 4.89543 19.9998 6 19.9998H13M17 3.99976H18C19.1046 3.99976 20 4.89519 20 5.99976V6.99976M20 16.9998V17.9998C20 19.1043 19.1046 19.9998 18 19.9998H17M20 10.9998V12.9998M12 1.99976V21.9998"
+        stroke={active ? "#04120b" : "#e2e8f0"}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </G>
+    <Defs>
+      <ClipPath id="compareClip">
+        <Rect width={24} height={24} fill="white" />
+      </ClipPath>
+    </Defs>
+  </Svg>
+);
 
 const ResettableSlider = ({
   onDoubleTapReset,
@@ -430,23 +558,28 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
   },
   compareButton: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: "rgba(15,23,42,0.7)",
+    position: "absolute",
+    bottom: 36,
+    right: 36,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "rgba(15,23,42,0.85)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
-  compareLabel: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 12,
+  compareButtonActive: {
+    backgroundColor: palette.tint,
+    borderColor: "rgba(48,232,119,0.5)",
   },
   bottomSheet: {
     marginTop: 12,
@@ -544,6 +677,76 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   intensityLabel: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  presetRow: {
+    gap: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
+  presetItem: {
+    width: 72,
+    alignItems: "center",
+    gap: 6,
+  },
+  presetItemActive: {
+    transform: [{ scale: 1.02 }],
+  },
+  presetThumbWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.15)",
+    overflow: "hidden",
+  },
+  presetThumbWrapperActive: {
+    borderColor: palette.tint,
+    shadowColor: palette.tint,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  presetThumb: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 18,
+  },
+  presetLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "600",
+    fontSize: 11,
+  },
+  presetLabelActive: {
+    color: palette.tint,
+  },
+  presetLoading: {
+    paddingVertical: 32,
+    alignItems: "center",
+    gap: 10,
+  },
+  presetInfo: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "600",
+  },
+  presetErrorCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    padding: 16,
+    gap: 10,
+    backgroundColor: "rgba(2,6,23,0.6)",
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  retryLabel: {
     color: "#fff",
     fontWeight: "600",
   },
