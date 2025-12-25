@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Halook Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#e6b06e", // Slightly brighter gold for better contrast on icons
+              "primary-dark": "#b0854e", 
+              "primary-light": "#ebd6b5",
+              "background-light": "#f6f7f8",
+              "background-dark": "#050505", // Deepest black
+              "surface-dark": "#121212", // Very dark grey
+              "surface-card": "#1c1c1c",
+              "text-cream": "#f5f2eb", // Brighter cream
+              "text-muted": "#a1a1aa",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            keyframes: {
+                shimmer: {
+                    '0%': { backgroundPosition: '-200% 0' },
+                    '100%': { backgroundPosition: '200% 0' },
+                }
+            },
+            animation: {
+                shimmer: 'shimmer 2s linear infinite',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+        }
+        input[type=range]:focus {
+            outline: none; 
+        }.material-symbols-filled {
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-sharp {
+          font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 200, 'opsz' 24;
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#050505] dark:bg-background-dark text-slate-900 dark:text-text-cream font-display flex flex-col h-screen overflow-hidden selection:bg-primary selection:text-black">
+<header class="flex items-center justify-between p-4 bg-transparent shrink-0 z-30">
+<button class="text-text-cream flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined material-symbols-sharp" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col items-center opacity-0 @[480px]:opacity-100 transition-opacity">
+<h2 class="text-text-cream text-base font-bold leading-tight tracking-wide">Editor</h2>
+</div>
+<button class="flex items-center justify-center px-5 py-2 rounded-full bg-primary hover:bg-[#ffc278] transition-colors shadow-[0_0_20px_rgba(230,176,110,0.25)] text-black border border-primary-light/20">
+<span class="text-black text-sm font-bold leading-normal tracking-wide">Save</span>
+</button>
+</header>
+<main class="relative flex-1 w-full flex flex-col items-center justify-center px-4 py-2 overflow-hidden">
+<div class="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-[#0a0a0a] group border border-white/5 ring-1 ring-white/5">
+<div class="w-full h-full bg-center bg-contain bg-no-repeat transition-transform duration-300 ease-out opacity-100" data-alt="Portrait photography being edited in dark mode interface" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBrBFgLT3laqjsk1MjlhM8Mdk6JABIKVIF7Z8fsATARHXnEF9E82Opr8nAb1NA31y--m__n4ipqAqUnhXlRJj1ZkvYD5zIZEqP6HloPuKiiplCFyDsvPdVlcz_DKBFmFSm5W1zZt4P6xdx3oRnSUxQowgTlKvprmDQDEBl7v94i6P2BQuLZXGPYMKNMmTK_MbhJqQT3J9MoOi_Ie7i0_3D4WqeN1Z-z72Ph3Zdxv4JmRnEdudEneroOZXDxJZxFawC8mxlbVKyVR8Q');">
+</div>
+<div class="absolute top-4 left-0 right-0 flex justify-center gap-3 px-4 z-20 pointer-events-none">
+<div class="pointer-events-auto flex h-10 items-center justify-center gap-x-2.5 rounded-full bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/10 pl-4 pr-5 hover:bg-[#2a2a2a] transition-all cursor-pointer active:scale-95 shadow-[0_4px_12px_rgba(0,0,0,0.5)] group/btn">
+<span class="material-symbols-outlined text-primary group-hover/btn:text-primary-light transition-colors text-[20px] material-symbols-sharp">splitscreen</span>
+<p class="text-text-cream text-xs font-bold leading-normal tracking-wide">Compare</p>
+</div>
+<div class="pointer-events-auto flex h-10 items-center justify-center gap-x-2.5 rounded-full bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/10 pl-4 pr-5 hover:bg-[#2a2a2a] transition-all cursor-pointer active:scale-95 shadow-[0_4px_12px_rgba(0,0,0,0.5)] group/btn">
+<span class="material-symbols-outlined text-primary group-hover/btn:text-primary-light transition-colors text-[20px] material-symbols-sharp">history</span>
+<p class="text-text-cream text-xs font-bold leading-normal tracking-wide">Reset</p>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md rounded-lg px-2.5 py-1 border border-white/10 shadow-lg">
+<span class="text-[10px] font-bold text-primary tracking-wider">100%</span>
+</div>
+</div>
+</main>
+<section class="bg-surface-dark w-full rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.9)] flex flex-col z-20 shrink-0 border-t border-white/5 pb-safe ring-1 ring-white/[0.03]">
+<div class="w-full flex justify-center pt-3 pb-1">
+<div class="w-10 h-1 rounded-full bg-white/20"></div>
+</div>
+<div class="px-6 py-5">
+<div class="flex w-full items-center justify-between mb-5">
+<span class="text-text-cream text-sm font-bold tracking-wide flex items-center gap-2.5">
+<div class="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-lg material-symbols-sharp">tune</span>
+</div>
+                Intensity
+            </span>
+<span class="text-primary text-xs font-bold font-mono bg-[#2a2015] border border-primary/30 px-2.5 py-1 rounded-md shadow-sm">+80</span>
+</div>
+<div class="relative flex h-8 w-full items-center touch-none">
+<div class="absolute w-full h-1.5 bg-[#252525] rounded-full overflow-hidden shadow-inner border border-white/5">
+<div class="h-full w-[80%] bg-gradient-to-r from-primary/60 via-primary to-primary-light rounded-full shadow-[0_0_10px_rgba(212,163,103,0.4)]"></div>
+</div>
+<div class="absolute left-[80%] top-1/2 -translate-y-1/2 -translate-x-1/2 group cursor-grab active:cursor-grabbing">
+<div class="size-6 rounded-full bg-text-cream shadow-[0_0_15px_rgba(212,163,103,0.6)] flex items-center justify-center ring-4 ring-primary/20 transition-all group-active:scale-110 border border-primary/30">
+<div class="size-2 rounded-full bg-primary shadow-sm"></div>
+</div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#2a2a2a] border border-white/10 text-primary text-xs font-bold px-2 py-1 rounded opacity-0 group-active:opacity-100 transition-opacity shadow-xl">80</div>
+</div>
+</div>
+</div>
+<div class="w-full pl-6 pb-6 pt-0">
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-2 pr-6 items-start">
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none">
+<div class="size-16 rounded-2xl border border-white/10 bg-[#1c1c1c] flex items-center justify-center group-hover:border-white/30 transition-all overflow-hidden relative shadow-lg">
+<span class="material-symbols-outlined text-text-muted/50 group-hover:text-text-cream transition-colors material-symbols-sharp">block</span>
+</div>
+<span class="text-[11px] font-semibold text-text-muted/60 group-hover:text-text-cream">None</span>
+</button>
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none">
+<div class="size-16 rounded-2xl border-2 border-primary p-0.5 bg-transparent relative transition-transform active:scale-95 shadow-[0_0_20px_rgba(212,163,103,0.15)]">
+<div class="w-full h-full rounded-[12px] overflow-hidden bg-cover bg-center" data-alt="Vivid preset thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuChQjU3LvBhRv_jbmolo8kCXRfw41Bk47qPTF7NkURK89V9EZ35hcr9aQyBijIz2mxTacbZSGPV5iERBFs-oL0PZWM3PaXLOFTy7WpD4tYEQSowT6edOKU2oaVnFuDxVgqxZBSSlWlCZ395VaTwY3PqAmyIZE8YxFhippjpu0LBiqMwJzvp7_k17zoFLHHMXTX0GVm0uAgf5latFgBL3HfTPNCZzcqy5O6JCid2mQ_4-fjUUI_hUAGmQjIDiRiXf_0Dbl3LI2IsGsU');"></div>
+<div class="absolute -bottom-1.5 -right-1.5 bg-primary text-black size-5 rounded-full flex items-center justify-center border-2 border-surface-dark shadow-md z-10">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</div>
+</div>
+<span class="text-[11px] font-bold text-primary tracking-wide">Vivid</span>
+</button>
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none">
+<div class="size-16 rounded-2xl border border-white/10 bg-[#1c1c1c] overflow-hidden relative group-hover:border-white/30 transition-all shadow-lg">
+<div class="w-full h-full bg-cover bg-center grayscale contrast-125 opacity-70 group-hover:opacity-100 transition-opacity" data-alt="Black and White preset thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGJ249ul9qEz9TDUEDe8Wy1FnDG3wlx12XWpCkKvjL_KMYbYJWxFHAmGJYQ-Vh4cp_tubuo5R91tQxmXiqCcqsmAv4mIDEhnYRL36TBKRjx6fnW5mU7k7ONBGjawHea-ZdT_rJI6liNBvcgixML67IWJTDlzJSKAuFgUyPI42clHQmkGeM3itSv3vIu2GuXH_ClrCHttopbpN3BvUyU9ampS_zSaEOQqJmiZrF-Wo5T8J21iCPiMSChczJ6Hd5Ju6FfN4jpfWQ_P0');"></div>
+</div>
+<span class="text-[11px] font-semibold text-text-muted group-hover:text-text-cream">Mono</span>
+</button>
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none relative">
+<div class="size-16 rounded-2xl border border-white/10 bg-[#1c1c1c] overflow-hidden relative group-hover:border-primary/40 transition-all shadow-lg">
+<div class="w-full h-full bg-cover bg-center sepia opacity-50" data-alt="Vintage preset thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBt4jskxMTdPTclE4raCWybVgIHOobPn-FNir8Dx7e27odQ0zv5OOEwPuJ4HQnDphwZbDW3lCjh9vSVCmPwaFguAQkZSPr11Ayp07Bs73xChb5Axb3UnHtVRRZBSXb6XOic1SIkNdcp0OQ7zdzzx2kb0ZbQYJXes01--fwjEudodrNp26UrgBTTnJcpznBG5v2a_o6lZ5wzfZgKpFAn0r_Z2AU7i-LrNB0u8ZTG7X1P6VH86SgoDC2vPG63Q-oljvi2gtY7ILcxc-U');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+<span class="material-symbols-outlined text-text-cream/90 text-lg drop-shadow-md material-symbols-sharp">lock</span>
+</div>
+<div class="absolute top-1 right-1 bg-[#2a2a2a] border border-white/10 text-primary px-1.5 py-0.5 rounded-[4px] shadow-sm">
+<span class="text-[8px] font-bold uppercase tracking-wider block">Pro</span>
+</div>
+</div>
+<span class="text-[11px] font-semibold text-text-muted group-hover:text-text-cream flex items-center gap-1">
+                    Vintage
+                </span>
+</button>
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none relative">
+<div class="size-16 rounded-2xl border border-white/10 bg-[#1c1c1c] overflow-hidden relative group-hover:border-primary/40 transition-all shadow-lg">
+<div class="w-full h-full bg-cover bg-center hue-rotate-15 contrast-110 opacity-50" data-alt="Cinema preset thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZpdNsHksnubsYGcsJXIehs0khgVOVPfNlHYzlWk-yuBmFh-PiJpBcX6tbJ-CBxoblm45Pox6GK6ltS1-Mr0y2FasdV0nmIvsMorxvJZahysVgqOO7Z9hB5tQtHHpcD2jqDdhNd__03PqtXLiIMWbKWFcrZ1lB7fPX5CJk1Fg7pWsHC1RBER3qiy9G6bhOIVFvFk5BuMT3OQxtnBwLRSGNtiMU-0SBjkzGUZzdCMjr_cxAj7CaJ9HwgRUjQ-ZRXk47ziNg_KxXPIk');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+<span class="material-symbols-outlined text-text-cream/90 text-lg drop-shadow-md material-symbols-sharp">lock</span>
+</div>
+<div class="absolute top-1 right-1 bg-gradient-to-r from-primary to-[#c69255] text-black px-1.5 py-0.5 rounded-[4px] shadow-sm animate-pulse">
+<span class="text-[8px] font-bold uppercase tracking-wider block">Elite</span>
+</div>
+</div>
+<span class="text-[11px] font-semibold text-text-muted group-hover:text-text-cream">Cinema</span>
+</button>
+<button class="flex flex-col gap-2.5 items-center shrink-0 group focus:outline-none relative">
+<div class="size-16 rounded-2xl border border-white/10 bg-[#1c1c1c] overflow-hidden relative group-hover:border-primary/40 transition-all shadow-lg">
+<div class="w-full h-full bg-cover bg-center hue-rotate-60 contrast-125 opacity-50" data-alt="Cyberpunk preset thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAGcxYpSPkZFppdCjnJtvEjl2ppY-ktSqmtWfoC7RXObkDGctZohT0uvxayI933o5W0Zud-02UzM-b2KB2d2rc_ESXZE5fDX3VS6wkIWD4MQuNWAhTw8_uZz3Glnnt8dJOB35IT6P-SRIgvMM8QnRLLtQSfpWA3pwYMnAm1J45RejEF_HHmMn7G3njNmINNmM0HYcdizd9wkG_MKukIermieKLilJi5xv5YQz9xSgJqHH4OQu9hbiSV3mVdMGymX9vueJ4YO6cE94Y');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+<span class="material-symbols-outlined text-text-cream/90 text-lg drop-shadow-md material-symbols-sharp">lock</span>
+</div>
+<div class="absolute top-1 right-1 bg-gradient-to-r from-primary to-[#c69255] text-black px-1.5 py-0.5 rounded-[4px] shadow-sm">
+<span class="text-[8px] font-bold uppercase tracking-wider block">Elite</span>
+</div>
+</div>
+<span class="text-[11px] font-semibold text-text-muted group-hover:text-text-cream">Cyber</span>
+</button>
+</div>
+</div>
+<div class="px-6 pb-6 pt-2 bg-surface-dark">
+<div class="flex h-16 w-full items-center justify-between rounded-2xl bg-[#0a0a0a] p-1.5 shadow-inner ring-1 ring-white/5 gap-1">
+<label class="relative flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 transition-all group">
+<input checked="" class="peer invisible w-0 absolute" name="editor-mode" type="radio" value="Presets"/>
+<div class="absolute inset-0 bg-[#252525] opacity-0 peer-checked:opacity-100 transition-opacity rounded-xl shadow-lg border border-white/10"></div>
+<div class="relative z-10 flex flex-col items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[24px] text-text-muted peer-checked:text-primary transition-colors material-symbols-sharp peer-checked:material-symbols-filled">magic_button</span>
+<span class="text-[10px] font-semibold tracking-wide text-text-muted peer-checked:text-text-cream transition-colors">Presets</span>
+</div>
+</label>
+<label class="relative flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 transition-all group">
+<input class="peer invisible w-0 absolute" name="editor-mode" type="radio" value="Adjustments"/>
+<div class="absolute inset-0 bg-[#252525] opacity-0 peer-checked:opacity-100 transition-opacity rounded-xl shadow-lg border border-white/10"></div>
+<div class="relative z-10 flex flex-col items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[24px] text-text-muted peer-checked:text-primary transition-colors material-symbols-sharp peer-checked:material-symbols-filled">tune</span>
+<span class="text-[10px] font-semibold tracking-wide text-text-muted peer-checked:text-text-cream transition-colors">Adjust</span>
+</div>
+</label>
+<label class="relative flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 transition-all group">
+<input class="peer invisible w-0 absolute" name="editor-mode" type="radio" value="Crop"/>
+<div class="absolute inset-0 bg-[#252525] opacity-0 peer-checked:opacity-100 transition-opacity rounded-xl shadow-lg border border-white/10"></div>
+<div class="relative z-10 flex flex-col items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[24px] text-text-muted peer-checked:text-primary transition-colors material-symbols-sharp peer-checked:material-symbols-filled">crop_rotate</span>
+<span class="text-[10px] font-semibold tracking-wide text-text-muted peer-checked:text-text-cream transition-colors">Crop</span>
+</div>
+</label>
+</div>
+</div>
+</section>
+</body></html>

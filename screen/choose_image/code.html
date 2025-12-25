@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Halook - Select Images</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFC800", // Warm Yellow tone
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "surface-dark": "#1a262d", 
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased overflow-hidden">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-2xl bg-background-dark">
+<header class="z-30 shrink-0 bg-background-dark/95 backdrop-blur-md border-b border-white/5 pt-safe-top">
+<div class="flex items-center justify-between p-4 pb-2">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-white/10 text-white/80 transition-colors">
+<span class="material-symbols-outlined text-[28px]">close</span>
+</button>
+<button class="flex items-center gap-1.5 rounded-lg px-3 py-1 hover:bg-white/5 active:scale-95 transition-all">
+<h2 class="text-white text-lg font-bold leading-tight tracking-tight">Recents</h2>
+<span class="material-symbols-outlined text-white text-[20px]">expand_more</span>
+</button>
+<div class="flex size-10 items-center justify-end">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-white/10 text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">more_vert</span>
+</button>
+</div>
+</div>
+<div class="px-4 pb-2">
+<div class="flex w-full items-center rounded-xl bg-surface-dark h-11 border border-white/5 focus-within:border-primary/50 transition-colors">
+<div class="flex w-10 items-center justify-center text-slate-400 pl-2">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="flex h-full w-full bg-transparent px-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 border-none" placeholder="Search photos, places, or dates"/>
+</div>
+</div>
+<div class="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
+<button class="flex h-8 min-w-fit items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-background-dark shadow-md shadow-primary/10 transition-colors">
+                    All
+                </button>
+<button class="flex h-8 min-w-fit items-center justify-center rounded-full bg-surface-dark border border-white/10 px-4 text-xs font-medium text-slate-300 hover:border-primary/40 hover:text-primary transition-colors">
+                    Favorites
+                </button>
+<button class="flex h-8 min-w-fit items-center justify-center rounded-full bg-surface-dark border border-white/10 px-4 text-xs font-medium text-slate-300 hover:border-primary/40 hover:text-primary transition-colors">
+                    Videos
+                </button>
+<button class="flex h-8 min-w-fit items-center justify-center rounded-full bg-surface-dark border border-white/10 px-4 text-xs font-medium text-slate-300 hover:border-primary/40 hover:text-primary transition-colors">
+                    Instagram
+                </button>
+<button class="flex h-8 min-w-fit items-center justify-center rounded-full bg-surface-dark border border-white/10 px-4 text-xs font-medium text-slate-300 hover:border-primary/40 hover:text-primary transition-colors">
+                    Raw
+                </button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto no-scrollbar pb-32">
+<div class="px-4 py-3 sticky top-0 z-10 bg-background-dark/80 backdrop-blur-sm">
+<h3 class="text-sm font-semibold text-white/80">Today</h3>
+</div>
+<div class="grid grid-cols-3 gap-1 px-1">
+<div class="relative aspect-square group cursor-pointer">
+<div class="absolute inset-0 bg-primary/20 z-10 ring-2 ring-inset ring-primary rounded-lg pointer-events-none"></div>
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Abstract neon blue lights in dark city street" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAbkFDDaMaXLm4DvoOAzceuNFDbP6ZEYrn_blvh2r4qPg1gZ1cQ0Fjh629GZTRrtaSvfz0ePVNB2jus83M9xfYlmd1p62FgdgvgMm77zsROZqjB-T4hdKIRsfHtrQK6M5AGMu7_z8mS-Q99LvFGdwih1xA-RVFWppMUuWaSN51kqX0ypYJcM7VLaZxvPW0OOnUVE92FhIaeLpkKqQEqxJYVbeXS6jYSj8VAUaMVoGHai-lWfexS6ZrAVJ7__nmt6b_h_uuzHVLe_Kg");'>
+</div>
+<div class="absolute top-2 right-2 z-20 bg-primary text-background-dark rounded-full flex items-center justify-center size-6 shadow-md">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors z-10 rounded-lg"></div>
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Mountain landscape with sunset gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyQd_kzOfGdUwD-2z0jreFcDidJBvJBQPTjj5R0mrJP1LWRSPud-FwrtvDDIIG8V6Di5By6gRAYC69L2PnxCo1IVpY6cIZiWyAnSexFbFC6BOAqRLY9ZTGtrGFNZ1LdKIdLtEq9-liYqXYv6WuNMLgtWUCzMc7TpQhVkYbS8w4Xv-lb8f5QTWT3E_jcPMx8JHmmuZ36APWTD9axzIQvF3tZyczI1QgVQzzct0UVtocTiyFm84lqZ1Ev5t3PNJEmiAAT8DeWP3VBhU");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="absolute inset-0 bg-primary/20 z-10 ring-2 ring-inset ring-primary rounded-lg pointer-events-none"></div>
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Portrait of a person with artistic lighting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsVFwvjjZK4-knFsM3EaFHd4GeEoxIix-2y_G9LILffd89qabST8RyBY1HW5INDp8XWSyTm8nByWzfkw8ElTEI8SSr9VDTG3PsR0d9jqGSQJbyRVgDv7hV9To6XTQpUpnFWpZx5Dbgm1x38U0JyXgcyXYqY9pAu8NTkY0jZyC-Vl5V2rC_s8GhjzMsSN7JbqJFE55dw4Zmqys37n_tzm3vpHJaX-N7y192GmqBc-fUGow718tlfjD1ALk_5aaojd1Zasu7LiHxFOA");'>
+</div>
+<div class="absolute top-2 right-2 z-20 bg-primary text-background-dark rounded-full flex items-center justify-center size-6 shadow-md">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Minimalist architectural building detail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnZQMJYY_FzgtTLlaz5_0NrKRMrnWpc_iUjF76zRzFM8kyGho7usFpLPEdEPWPq9k3rvyX5jghGcNqun4zX4hMLOUaw3Vjq5jvDWGam_srZ5ytEG_82RV8961BdDC8lWaY0R59Vwnpr0U9QQS_dFBMIEOkUKJo7G06BjbcBCkjPy5XkkdCNhrRMfxvVK07SKyb5g_MOl3lr424sXQGx1Dl2DU73UlzALstUIprNJXdaRIaMYXENzzZt6L3OS5kIij4xPgUzMuDbMc");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Coffee cup on a dark wooden table" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvGijxygctqRBj_W1iWkQAGBPwmPOROSZCaJ5JY4nSh_UTe2jp79sbaCEHdmp4hmMi6RwWmV5sn7mQl9rbooFE40S_qfd_wE1cM-mc66cE9yX0V7cOSYy4ydbClQokz7OPV9TF3LqHQgjUbud_dVJQy0XVHZoMwUsmwwc0SmdtJ6z7OsSfJv50rPlZwfEfH_BYlA9_5YtZJQ6IoHfpD98AwLTuxdqRZl0RoaHXmp6pwF1C5APhN6M19u4XB6cRWcT1y2F0bsisRqE");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Urban street photography at night" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBIWIogVFhxVoPhrkg4kSwryRP8KSf4OGctUnk_TVxUzMuhmOxHY-DRrehaPrN0jbEuZjYpraa1kdxa3FyA2cIHpHIc8PaVs4Z_IvFAXqaLzJPdorddy0vVdNEkLJqzFgTqXcb3Prr9hzJAT7VEg7Vb8wcqzDKr9V8oJd9FvW3AGxrODOk9DD_YVTofZCFbxLdQSSZbzgoElbgsqSy2lQPeoDgEMd_1N04whdkChqyekYz-vYSOoNfzCP-WuITlf3BKhDStjCKCScc");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+</div>
+<div class="px-4 py-3 mt-2 sticky top-0 z-10 bg-background-dark/80 backdrop-blur-sm">
+<h3 class="text-sm font-semibold text-white/80">Yesterday</h3>
+</div>
+<div class="grid grid-cols-3 gap-1 px-1">
+<div class="relative aspect-square group cursor-pointer">
+<div class="absolute inset-0 bg-primary/20 z-10 ring-2 ring-inset ring-primary rounded-lg pointer-events-none"></div>
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Detailed texture of a green leaf" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXjwKQGPA-MDT7UYbOChXjYn8xeshEJzJhMN34CQ4mNiRwsUF9fLl_c1y1k7rgvniJvas19qmcsB1wg3f1IDyE7hcqSuNISBk1x4D7tBWs0KD-jT1sqdm8kwjKmP7d46vWrU9Pp_BhxjgbVBHWu-z0m9CoaMilBsKxdomtxuLaqUDtk-ao4D03jvBHCzSfNGEy8rVoR1QING2SW-QQ2XUJVUf-W1PrQu76zLZH-hghSazVGuIwv8VZt0Vj6lYzcZ2x8gPRsD4wAds");'>
+</div>
+<div class="absolute top-2 right-2 z-20 bg-primary text-background-dark rounded-full flex items-center justify-center size-6 shadow-md">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Dark moody ocean waves" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBtHP0IP9oi-EOE1Ivz809Hyvv34XlLKZIqyeZuuflVCx9RicO6npGRRURjs7T1cUGKNqta9MOJSgfY274Slf--gF8PR-LMn2WoEvEn02GN_xHAD0qOHCrlWo9VmBADu-Vhl-JyYRhP8dYhUIqKQyOjje6Srrc7daTYGKGR39snPUQdXuSH7eCIsgp-TiVv38BSn77CoBf7X-W51frBC8BE96U0eDUuNOUo-QMa8zdU8GNWT1wwjKEXorJA7Yjena-QwFIw9OIG_rI");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Car taillights motion blur on highway" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-TlSSEBVAbLx4ZvBHwayZGpBgqQEE8uA8QH33ZDx0ggfu3dHmdul04im1fjbMEcftbAp5mu3Jv6wrPzSGWEE1aB2YDFFs_qZ6SJHiN91XtY998AGlDJBVUV9DMfn4PiYxHLRIoO9lYbz4e2Op2ns4nwGwlBNFTCW3DUH0GPdYv0NvhLIQJU5PhLbBIz8eDLXiu-8nW55SuVtMns-8TTQFJXj-dG9zbiwdeFgonJIk0JBhsOJY0AfVndA4dD_Os7jn75FbitrRS9Y");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Abstract geometric shapes in dark colors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCRtY72O0u494aI3bq5gZS9bsMcvTltCLILn2XbL-fFlmZ6nKLGe7u4mw68A3koFKyVo-4fNL63BschpEjtGYVAGNasquUOp2zIBIeSGGp0pLX0yXkF9hWoibRm-H-y91c-I5ue_oE5gMmSfOYGvmGFLhxsTuOgDtBNNcaGF0U3Oessc1BGTY3x0pc2kjjrjOGLPQOChxeno3KzTTogF-33Vs9zrVORY3NRvTvlU5u2AAZWty3-jQI7B-Tz8Kdwj4a84Y63Vz9mD9Y");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Warm cozy indoor reading nook" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBohbO80rKsHQWud-dKXbTDIlT0iFJcdkKOJlG-Is6FgFK8ii3pjWSusaRR0M-FVN8jTDuG51ZwxXl0yf3lABpY2Ww5tTqUmMxBA9Cd8Chsq1Q_6wlI1Ylo8mfrewNzGJ5bSwCaQwjlNLowVzeZCQ4M-W3QLCiedYkA2mW3seJT4sWdu01BwovPmyRikPdZANlVvBvZk8rJMmBXMCmzpylxhemhMjXiTX8YT-Lc61laptJ7b4lZOWbtaul8BdBNzbCeC9343R5iHbQ");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+<div class="relative aspect-square group cursor-pointer">
+<div class="size-full rounded-lg bg-center bg-cover" data-alt="Foggy forest landscape in morning" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDMiJZGcH8wYmLoxThisUyXYZpcL8RhMxwaXRBTR82Hm2jLP2Rn9AMQKIXHOWHPjXo1sgFACNbaEMN78chqFi3esEGAOdwApZng2zR5lPcvyEK551V1ZqN8r1eXfqfK2qOhTkYZt1w0DLVpGd0R8SukBNTsMogmosjWc-CS_oGqxYB8XoXnx84oABGe_w36IuzbOcrATjoaifRrUjaKqDJv4MdJcES0CKlDzVFxwTn3n3yqqVWkkUDX99Mer0sqrat1oMG4BuVlMFE");'>
+</div>
+<div class="absolute top-2 right-2 z-20 text-white/70">
+<span class="material-symbols-outlined drop-shadow-md text-[24px]">radio_button_unchecked</span>
+</div>
+</div>
+</div>
+<div class="h-8"></div>
+</main>
+<div class="absolute bottom-6 left-0 right-0 z-40 px-4">
+<div class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-surface-dark/90 backdrop-blur-xl p-3 pl-5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex flex-col">
+<p class="text-white text-sm font-semibold leading-tight">3 selected</p>
+<p class="text-slate-400 text-xs font-medium">Ready to edit</p>
+</div>
+<button class="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary h-10 px-6 text-background-dark shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all">
+<span class="text-sm font-bold uppercase tracking-wide">Continue</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

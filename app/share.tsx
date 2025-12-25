@@ -6,11 +6,12 @@ import { useCallback } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/theme';
 import { ShareOptions } from '@/src/components/ShareOptions';
 import { shareImageToTarget } from '@/src/services/shareService';
 
-const palette = Colors.light;
+const shareAccent = '#d6a472';
+const shareSurface = '#161618';
+const shareBackground = '#0a0a0c';
 
 export default function ShareScreen() {
   const router = useRouter();
@@ -45,45 +46,55 @@ export default function ShareScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.background}>
-        <View style={styles.blobTopRight} />
-        <View style={styles.blobBottomLeft} />
-      </View>
-      <View style={styles.toast}>
-        <MaterialIcons name="check-circle" size={18} color="#1c4532" />
-        <Text style={styles.toastLabel}>Đã lưu ảnh thành công</Text>
+        <View style={styles.glowTop} />
+        <View style={styles.glowBottom} />
       </View>
       <View style={styles.header}>
         <TouchableOpacity style={styles.roundButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back-ios-new" size={18} color="#065f46" />
+          <MaterialIcons name="arrow-back-ios-new" size={20} color="#f0ede6" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.qualityButton}>
-          <MaterialIcons name="tune" size={18} color={palette.tint} />
-          <Text style={styles.qualityLabel}>Chất lượng</Text>
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Share</Text>
+        <View style={{ width: 44 }} />
       </View>
-      <View style={styles.previewWrapper}>
+      <View style={styles.previewSection}>
         <View style={styles.previewCard}>
           <Image
             source={incomingUri ? { uri: incomingUri } : require('../assets/images/icon.png')}
             style={styles.previewImage}
           />
-          <View style={styles.previewOverlay} />
+          <View style={styles.previewMaskTop}>
+            <Text style={styles.previewMaskText}>System UI Area</Text>
+          </View>
+          <View style={styles.previewMaskBottom}>
+            <Text style={styles.previewMaskText}>Reply & Action Area</Text>
+          </View>
+          <View style={styles.previewBadge}>
+            <MaterialIcons name="verified" size={20} color={shareAccent} />
+            <Text style={styles.previewBadgeLabel}>Image Saved</Text>
+          </View>
         </View>
+        <Text style={styles.previewHint}>Previewing Story Mode (9:16)</Text>
       </View>
       <View style={styles.sheet}>
-        <View style={styles.primaryActions}>
+        <TouchableOpacity style={styles.primaryAction} onPress={handleShareStory}>
+          <MaterialIcons name="amp-stories" size={26} color={shareBackground} />
+          <Text style={styles.primaryLabel}>Share to Story</Text>
+        </TouchableOpacity>
+        <View style={styles.secondaryRow}>
           <TouchableOpacity style={styles.secondaryAction} onPress={handleSaveToDevice}>
-            <MaterialIcons name="download" size={22} color="#065f46" />
-            <Text style={styles.secondaryLabel}>Lưu về máy</Text>
+            <MaterialIcons name="save-alt" size={22} color="#f0ede6" />
+            <Text style={styles.secondaryLabel}>Save to Device</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryAction} onPress={handleShareStory}>
-            <MaterialIcons name="add-circle" size={24} color="#022c22" />
-            <Text style={styles.primaryLabel}>Tin của bạn</Text>
+          <TouchableOpacity
+            style={styles.iconAction}
+            onPress={() => Alert.alert('Sắp ra mắt', 'Các tuỳ chọn khác đang được hoàn thiện.')}
+          >
+            <MaterialIcons name="more-horiz" size={26} color="#f0ede6" />
           </TouchableOpacity>
         </View>
         <View style={styles.dividerRow}>
           <View style={styles.divider} />
-          <Text style={styles.dividerLabel}>Hoặc chia sẻ qua</Text>
+          <Text style={styles.dividerLabel}>More options</Text>
           <View style={styles.divider} />
         </View>
         <ShareOptions imageUri={incomingUri} />
@@ -95,86 +106,55 @@ export default function ShareScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#ecfdf5',
+    backgroundColor: shareBackground,
   },
   background: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#ecfdf5',
+    backgroundColor: shareBackground,
   },
-  blobTopRight: {
+  glowTop: {
     position: 'absolute',
-    top: -80,
+    top: -120,
+    left: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(214,164,114,0.2)',
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: -120,
     right: -60,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: 'rgba(48,232,119,0.3)',
-  },
-  blobBottomLeft: {
-    position: 'absolute',
-    bottom: 80,
-    left: -40,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(16,185,129,0.2)',
-  },
-  toast: {
-    position: 'absolute',
-    top: 32,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: 'rgba(220, 252, 231, 0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
-    shadowColor: palette.tint,
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
-  },
-  toastLabel: {
-    fontWeight: '700',
-    color: '#022c22',
-    letterSpacing: 0.5,
-    fontSize: 12,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 64,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     marginBottom: 12,
   },
   roundButton: {
     width: 44,
     height: 44,
-    borderRadius: 999,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
-  qualityButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    height: 44,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+  headerTitle: {
+    color: '#f0ede6',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
-  qualityLabel: {
-    fontWeight: '600',
-    color: '#0f172a',
-  },
-  previewWrapper: {
+  previewSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -183,92 +163,153 @@ const styles = StyleSheet.create({
   previewCard: {
     width: '100%',
     maxWidth: 380,
-    aspectRatio: 3 / 4,
-    borderRadius: 32,
+    aspectRatio: 9 / 16,
+    borderRadius: 28,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
-    shadowColor: palette.tint,
-    shadowOpacity: 0.25,
-    shadowRadius: 35,
+    borderColor: 'rgba(255,255,255,0.15)',
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 32,
     shadowOffset: { width: 0, height: 20 },
   },
   previewImage: {
     width: '100%',
     height: '100%',
   },
-  previewOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(4,120,87,0.1)',
+  previewMaskTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '16%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 6,
+  },
+  previewMaskBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '18%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 6,
+  },
+  previewMaskText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  previewBadge: {
+    position: 'absolute',
+    top: '45%',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(26,26,28,0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  previewBadgeLabel: {
+    color: '#f0ede6',
+    fontWeight: '600',
+  },
+  previewHint: {
+    marginTop: 12,
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 12,
+    letterSpacing: 1,
   },
   sheet: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
+    backgroundColor: shareSurface,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
-    shadowColor: 'rgba(0,0,0,0.2)',
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  primaryActions: {
-    flexDirection: 'row',
+    paddingTop: 28,
+    paddingBottom: 24,
     gap: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#000',
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -6 },
+  },
+  primaryAction: {
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: shareAccent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    shadowColor: shareAccent,
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+  },
+  primaryLabel: {
+    fontWeight: '700',
+    fontSize: 16,
+    color: shareBackground,
+    letterSpacing: 0.5,
+  },
+  secondaryRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   secondaryAction: {
     flex: 1,
-    height: 56,
-    borderRadius: 20,
+    height: 52,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(5, 150, 105, 0.2)',
-    backgroundColor: 'rgba(220,252,231,0.8)',
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
   secondaryLabel: {
-    fontWeight: '700',
-    color: '#064e3b',
+    color: '#f0ede6',
+    fontWeight: '600',
   },
-  primaryAction: {
-    flex: 1.4,
-    height: 56,
-    borderRadius: 20,
-    backgroundColor: '#30e877',
-    flexDirection: 'row',
+  iconAction: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: palette.tint,
-    shadowOpacity: 0.35,
-    shadowRadius: 28,
-  },
-  primaryLabel: {
-    fontWeight: '800',
-    color: '#022c22',
-    letterSpacing: 0.3,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginTop: 4,
+    gap: 12,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(15,23,42,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   dividerLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#047857',
-    letterSpacing: 2,
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 3,
+    fontSize: 11,
+    textTransform: 'uppercase',
   },
 });

@@ -2,161 +2,113 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Share Screen - Halook</title>
+<title>Halook Share Screen</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "primary": "#30e877",
-              "primary-dark": "#22c55e",
-              "background-light": "#f0fdf4", 
-              "background-dark": "#022c22", 
-              "surface-dark": "#064e3b",
-              "surface-light": "#ffffff",
-              "mint-accent": "#30e877",
-              "mint-soft": "#dcfce7",
-              "nature-green": "#10b981",
-              "emerald-dark": "#047857"
-            },
-            fontFamily: {
-              "display": ["Inter", "sans-serif"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-            keyframes: {
-                shimmer: {
-                    '100%': { transform: 'translateX(100%)' },
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        // Warm brownish-gold inspired by the reference "Shop Now" button
+                        "primary": "#d6a472",
+                        "primary-hover": "#c59360",
+                        "on-primary": "#1a1612", // Dark rich brown text for contrast on gold button
+                        "background-light": "#f6f7f8",
+                        // Deep dark charcoal/black backgrounds
+                        "background-dark": "#0a0a0c",
+                        "surface-dark": "#161618", 
+                        // Creamy white text
+                        "text-main": "#f0ede6", 
+                        "text-muted": "#a8a29e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
                 },
-                slideDown: {
-                    '0%': { transform: 'translateY(-20px)', opacity: '0' },
-                    '100%': { transform: 'translateY(0)', opacity: '1' },
-                },
-                float: {
-                    '0%, 100%': { transform: 'translateY(0)' },
-                    '50%': { transform: 'translateY(-8px)' },
-                }
             },
-            animation: {
-                shimmer: 'shimmer 1.5s infinite',
-                slideDown: 'slideDown 0.5s ease-out forwards',
-                float: 'float 6s ease-in-out infinite',
-            }
-          },
-        },
-      }
+        }
     </script>
-<style>
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        body {
-            font-family: 'Inter', "Noto Sans", sans-serif;
-        }
-        body {
-            min-height: max(884px, 100dvh);
+<style>.safe-zone-pattern {
+            background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 0, transparent 50%);
+            background-size: 10px 10px;
         }
     </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }.icon-sharp {
+        font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+    }
+    .icon-filled {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .icon-hero {
+         font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 200, 'opsz' 48;
+    }
+  </style>
 <style>
     body {
       min-height: max(884px, 100dvh);
     }
   </style>
   </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden selection:bg-mint-accent selection:text-emerald-900">
-<div class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto overflow-y-auto bg-gradient-to-br from-[#ecfdf5] via-[#dcfce7] to-[#f0fdf4] dark:from-[#022c22] dark:via-[#064e3b] dark:to-[#065f46] group/design-root transition-colors duration-300">
-<div class="fixed top-[-10%] right-[-10%] w-[300px] h-[300px] bg-primary/30 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
-<div class="fixed bottom-[20%] left-[-10%] w-[250px] h-[250px] bg-nature-green/30 dark:bg-emerald-600/20 rounded-full blur-[60px] pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
-<div class="absolute top-24 left-0 right-0 z-50 flex justify-center pointer-events-none">
-<div class="animate-slideDown flex items-center gap-3 bg-mint-soft/90 dark:bg-emerald-950/80 backdrop-blur-xl border border-white/60 dark:border-emerald-500/30 px-5 py-3 rounded-full shadow-lg shadow-primary/20 ring-1 ring-emerald-100/50 dark:ring-emerald-900/50">
-<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[20px] font-bold">check_circle</span>
-<span class="text-emerald-900 dark:text-emerald-50 text-sm font-semibold tracking-wide">Đã lưu ảnh thành công</span>
-</div>
-</div>
-<div class="flex items-center justify-between p-4 z-10 w-full mt-2">
-<button class="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/40 dark:bg-black/20 backdrop-blur-md hover:bg-mint-soft/50 dark:hover:bg-emerald-900/40 border border-white/30 dark:border-white/10 transition-all text-slate-700 dark:text-white shadow-sm">
-<span class="material-symbols-outlined">arrow_back_ios_new</span>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display antialiased selection:bg-primary/30 selection:text-primary overflow-hidden">
+<div class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-white/5">
+<div class="flex items-center justify-between p-4 z-20">
+<button class="text-slate-900 dark:text-text-main flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[24px] icon-sharp">arrow_back_ios_new</span>
 </button>
-<button class="flex items-center justify-center gap-2 px-4 h-10 rounded-full bg-white/40 dark:bg-black/20 backdrop-blur-md hover:bg-mint-soft/50 dark:hover:bg-emerald-900/40 border border-white/30 dark:border-white/10 transition-all text-slate-700 dark:text-white shadow-sm group">
-<span class="material-symbols-outlined text-[20px] text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">tune</span>
-<span class="text-sm font-medium">Chất lượng</span>
+<h1 class="text-slate-900 dark:text-text-main font-semibold text-lg">Share</h1>
+<div class="size-10"></div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center w-full px-6 relative z-10 pb-4">
+<div class="relative w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105" data-alt="Edited portrait photo of a person standing in a neon-lit city street at night, looking cinematic" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDbC8LMHZO-5VPvqAC9LDBAavN3_87kR33Bfv0Y8DFX5aShcwdIkvzyjJ9mfUX5FuDTx5443zWjy5uGi9uMPOMn3ZF9o18dhspOw8va8EjHbipSTdTnL78PyeoUC8YDmp562qtIt5CATJtWRPsnyMX2rED6O9LTpJV47aVIkKBHJpxlhr_sP72aC72n2AeCGnL0_vni3ay2kNhCldwIHsuEgMPtR3UKLQbGYRS5SqPWXnZM9MHq2n4OkbjJyhtLHOwzcxBkrT69C0c");'>
+</div>
+<div class="absolute top-0 left-0 right-0 h-[14%] border-b border-dashed border-white/20 bg-gradient-to-b from-black/60 to-transparent pointer-events-none flex flex-col justify-end p-2">
+<p class="text-[10px] text-text-main/60 font-medium tracking-wide uppercase text-center opacity-0 group-hover:opacity-100 transition-opacity">System UI Area</p>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-[18%] border-t border-dashed border-white/20 bg-gradient-to-t from-black/60 to-transparent pointer-events-none p-2">
+<p class="text-[10px] text-text-main/60 font-medium tracking-wide uppercase text-center opacity-0 group-hover:opacity-100 transition-opacity">Reply &amp; Action Area</p>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center animate-fade-in-up pointer-events-none">
+<div class="bg-[#1a1a1c]/90 backdrop-blur-md border border-white/10 text-text-main px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transform transition-all">
+<span class="material-symbols-rounded text-primary text-[22px] icon-filled">verified</span>
+<span class="text-sm font-medium">Image Saved</span>
+</div>
+</div>
+</div>
+<p class="text-slate-500 dark:text-text-muted text-xs font-medium mt-4">Previewing Story Mode (9:16)</p>
+</div>
+<div class="w-full bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-white/5 rounded-t-[2rem] p-6 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-20">
+<div class="flex flex-col gap-3">
+<button class="relative w-full overflow-hidden rounded-xl h-14 bg-primary text-on-primary font-bold text-base tracking-wide shadow-lg shadow-primary/10 hover:bg-primary-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+<span class="material-symbols-rounded text-[26px] icon-filled drop-shadow-sm">amp_stories</span>
+<span>Share to Story</span>
+</button>
+<div class="grid grid-cols-[1fr_auto] gap-3">
+<button class="h-12 flex-1 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-text-main font-medium text-sm hover:bg-slate-200 dark:hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-transparent dark:border-white/5 group">
+<span class="material-symbols-outlined text-[22px] text-text-muted group-hover:text-primary transition-colors icon-sharp">save_alt</span>
+<span>Save to Device</span>
+</button>
+<button class="size-12 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-text-main hover:bg-slate-200 dark:hover:bg-white/10 active:scale-[0.95] transition-all flex items-center justify-center border border-transparent dark:border-white/5 group">
+<span class="material-symbols-outlined text-[26px] text-text-muted group-hover:text-primary transition-colors icon-sharp">more_horiz</span>
 </button>
 </div>
-<div class="flex-1 flex flex-col items-center justify-center px-6 py-2 w-full relative z-10">
-<div class="relative p-3 rounded-[2rem] bg-white/30 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-xl shadow-primary/20 dark:shadow-black/20 animate-float">
-<div class="relative w-full h-full max-h-[55vh] rounded-3xl overflow-hidden shadow-inner border border-white/20 dark:border-white/5 bg-surface-light dark:bg-surface-dark">
-<div class="w-full h-full bg-cover bg-center transition-transform duration-700 hover:scale-105" data-alt="Edited portrait photograph showing a woman with warm lighting and high contrast" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuChTH7YCPCHjFV9_Y8ufK57Eup2i77Y7UvwELUr0j_AHze63cnuxsolH7Sk8c6pcA2DpG9cEcNjOqvfUir4uXgS7-ySiBv04I8bEvZbVg57peWgMM35XGPt--CvYtwN76n4IRxAxF5XRe2CuQow5Ca5-OIKuQTG0BZtOO3JaxN0anpND12mC0ZaNk7EMal542fJSVku2DEyreVfWVdAL5myFVxYbOzw6HNp0pcqUzk_j-Wet1Gaal7Rg31GkcDfqDbZPKchUhoDeuA"); aspect-ratio: 3/4;'></div>
-<div class="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-black/20 pointer-events-none mix-blend-overlay"></div>
 </div>
 </div>
 </div>
-<div class="flex flex-col w-full bg-white/60 dark:bg-[#022c22]/80 backdrop-blur-3xl rounded-t-[2.5rem] shadow-[0_-8px_40px_rgba(48,232,119,0.15)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] pb-8 pt-8 z-20 mt-4 border-t border-white/50 dark:border-white/10 ring-1 ring-white/20 dark:ring-white/5">
-<div class="flex gap-4 px-6 mb-8 w-full">
-<button class="flex flex-1 h-14 items-center justify-center gap-2.5 rounded-2xl bg-mint-soft/60 dark:bg-emerald-900/40 backdrop-blur-md text-emerald-900 dark:text-emerald-50 hover:bg-mint-soft dark:hover:bg-emerald-900/60 active:scale-[0.98] transition-all border border-emerald-100/50 dark:border-emerald-500/20 shadow-sm group">
-<span class="material-symbols-outlined text-[24px] text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">download</span>
-<span class="text-base font-bold tracking-[0.015em]">Lưu về máy</span>
-</button>
-<button class="flex flex-[1.4] h-14 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-br from-[#30e877] to-[#10b981] dark:from-[#30e877] dark:to-[#059669] backdrop-blur-md text-emerald-950 dark:text-white hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_8px_20px_rgba(48,232,119,0.4)] dark:shadow-[0_8px_20px_rgba(48,232,119,0.2)] relative overflow-hidden group border border-white/20">
-<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
-<div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-30 pointer-events-none"></div>
-<span class="material-symbols-outlined text-[24px] filled">add_circle</span>
-<span class="text-base font-bold tracking-[0.015em] drop-shadow-sm">Tin của bạn</span>
-</button>
-</div>
-<div class="w-full px-6 mb-6">
-<div class="flex items-center gap-4">
-<div class="h-px bg-emerald-200/50 dark:bg-white/10 flex-1"></div>
-<span class="text-[11px] font-bold text-emerald-600/70 dark:text-emerald-200/50 uppercase tracking-widest text-shadow-sm">Hoặc chia sẻ qua</span>
-<div class="h-px bg-emerald-200/50 dark:bg-white/10 flex-1"></div>
-</div>
-</div>
-<div class="w-full overflow-x-auto no-scrollbar pl-6 py-2">
-<div class="flex gap-4 min-w-max pr-6">
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">camera_alt</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Instagram</span>
-</div>
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">public</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Facebook</span>
-</div>
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">chat_bubble</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Zalo</span>
-</div>
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">close</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Twitter</span>
-</div>
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">link</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Sao chép</span>
-</div>
-<div class="flex flex-col items-center gap-3 group cursor-pointer w-[72px]">
-<div class="size-16 rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center group-active:scale-90 transition-all shadow-sm group-hover:bg-mint-soft/50 dark:group-hover:bg-emerald-900/30 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(48,232,119,0.25)]">
-<span class="material-symbols-outlined text-[30px] text-emerald-500 dark:text-emerald-400 drop-shadow-sm group-hover:scale-110 group-hover:text-primary transition-all">more_horiz</span>
-</div>
-<span class="text-xs text-slate-600 dark:text-slate-300 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Thêm</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-
 </body></html>

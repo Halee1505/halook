@@ -2,8 +2,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { ShareTarget, shareImageToTarget } from '@/src/services/shareService';
-import { Colors } from '@/constants/theme';
-
 type Props = {
   imageUri?: string | null;
 };
@@ -37,7 +35,7 @@ export const ShareOptions = ({ imageUri }: Props) => {
       {targets.map((item, index) => (
         <TouchableOpacity key={`${item.label}-${index}`} style={styles.option} onPress={() => handleShare(item.target)}>
           <View style={styles.optionIcon}>
-            <MaterialIcons name={item.icon} size={26} color={palette.tint} />
+            <MaterialIcons name={item.icon} size={26} color={shareAccent} />
           </View>
           <Text style={styles.optionLabel}>{item.label}</Text>
         </TouchableOpacity>
@@ -46,7 +44,7 @@ export const ShareOptions = ({ imageUri }: Props) => {
   );
 };
 
-const palette = Colors.light;
+const shareAccent = '#d6a472';
 
 const styles = StyleSheet.create({
   scrollContent: {
@@ -62,15 +60,15 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionLabel: {
     fontSize: 12,
-    color: 'rgba(15, 23, 42, 0.8)',
+    color: '#f0ede6',
     fontWeight: '600',
   },
 });

@@ -3,32 +3,42 @@ import Slider, { type SliderProps } from "@react-native-community/slider";
 import { useCanvasRef } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
   GestureResponderEvent,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "@/constants/theme";
 import { CropOverlay } from "@/src/components/CropOverlay";
 import { EditorCanvas } from "@/src/components/EditorCanvas";
 import { CROP_OPTIONS } from "@/src/constants/cropOptions";
-import { adjustmentRanges } from "@/src/engine/presetMath";
+import { DEFAULT_CROP_RECT } from "@/src/engine/cropMath";
+import {
+  adjustmentRanges,
+  buildEditorAdjustmentsFromPreset,
+} from "@/src/engine/presetMath";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { usePresetList } from "@/src/hooks/usePresets";
-import { adjustmentKeys, type AdjustmentKey } from "@/src/models/editor";
+import {
+  adjustmentKeys,
+  type AdjustmentKey,
+  type CropRect,
+} from "@/src/models/editor";
 import type { Preset } from "@/src/models/presets";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
 
-const palette = Colors.light;
+const editorAccent = "#e6b06e";
+const editorBg = "#050505";
+const editorSurface = "#121212";
 const DOUBLE_TAP_RESET_DELAY = 250;
 
 const ADJUSTMENT_UI: Record<
@@ -125,6 +135,7 @@ export default function EditorScreen() {
   );
   const setCropState = useEditorState((state) => state.setCropState);
   const currentPresetId = useEditorState((state) => state.preset?._id);
+  const resetAdjustments = useEditorState((state) => state.resetAdjustments);
   const [activeAdjustment, setActiveAdjustment] =
     useState<AdjustmentKey>("exposure");
   const [activeNav, setActiveNav] = useState<NavId>("adjust");
@@ -142,17 +153,13 @@ export default function EditorScreen() {
     pageX: number;
     pageY: number;
   } | null>(null);
+  const imageRectRef = useRef<typeof imageRect>(null);
   const {
     presets,
     loading: presetsLoading,
     error: presetsError,
     reload: reloadPresets,
   } = usePresetList();
-  const { height: windowHeight } = useWindowDimensions();
-  const editorPanelHeight = useMemo(
-    () => Math.max(windowHeight * 0.2, 220),
-    [windowHeight]
-  );
 
   const cropStateRef = useRef({
     rect: cropRectNormalized,
@@ -179,6 +186,32 @@ export default function EditorScreen() {
   const activeRange = adjustmentRanges[activeAdjustment];
   const activeValue = adjustments[activeAdjustment];
 
+  const [saveToastVisible, setSaveToastVisible] = useState(false);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+
+  const showSaveToast = useCallback(() => {
+    setSaveToastVisible(true);
+    Animated.sequence([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 100,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.delay(1600),
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 100,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        setSaveToastVisible(false);
+      }
+    });
+  }, [toastOpacity]);
+
   const handleSave = async (navigateToShare = false) => {
     if (!imageUri) {
       Alert.alert("Chưa có ảnh", "Hãy chụp ảnh bằng camera Halook.");
@@ -193,10 +226,7 @@ export default function EditorScreen() {
         cropAspectRatio,
         cropRect: cropRectNormalized,
       });
-      Alert.alert(
-        "Lưu thành công",
-        "Ảnh Halook của bạn đã có trong Camera Roll."
-      );
+      showSaveToast();
       if (navigateToShare) {
         router.push({ pathname: "/share", params: { uri: savedUri } });
       }
@@ -246,6 +276,27 @@ export default function EditorScreen() {
     setActiveNav("adjust");
   };
 
+  const handleImageRectChange = useCallback((rect: typeof imageRect) => {
+    const prev = imageRectRef.current;
+    if (
+      prev &&
+      rect &&
+      prev.x === rect.x &&
+      prev.y === rect.y &&
+      prev.width === rect.width &&
+      prev.height === rect.height &&
+      prev.pageX === rect.pageX &&
+      prev.pageY === rect.pageY
+    ) {
+      return;
+    }
+    if (!prev && !rect) {
+      return;
+    }
+    imageRectRef.current = rect;
+    setImageRect(rect);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.background}>
@@ -257,23 +308,11 @@ export default function EditorScreen() {
           style={styles.roundButton}
           onPress={() => router.back()}
         >
-          <MaterialIcons name="arrow-back-ios-new" size={18} color="#f8fafc" />
+          <MaterialIcons name="arrow-back-ios-new" size={18} color="#f5f2eb" />
         </TouchableOpacity>
-        <View style={styles.historyButtons}>
-          <TouchableOpacity style={styles.historyIcon}>
-            <MaterialIcons
-              name="undo"
-              size={18}
-              color="rgba(255,255,255,0.7)"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.historyIcon}>
-            <MaterialIcons
-              name="redo"
-              size={18}
-              color="rgba(255,255,255,0.7)"
-            />
-          </TouchableOpacity>
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerTitle}>Editor</Text>
+          <Text style={styles.headerSubtitle}>Halook Studio</Text>
         </View>
         <TouchableOpacity
           style={styles.saveButton}
@@ -283,33 +322,53 @@ export default function EditorScreen() {
         </TouchableOpacity>
       </View>
       <View style={styles.canvasWrapper}>
-        <EditorCanvas
-          canvasRef={canvasRef}
-          imageUri={imageUri}
-          adjustments={adjustments}
-          cropAspectRatio={cropAspectRatio}
-          intensity={presetIntensity}
-          showOriginal={isComparing}
-          cropRectNormalized={cropRectNormalized}
-          onImageRectChange={(rect) => setImageRect(rect)}
-        />
-        <TouchableOpacity
-          style={[
-            styles.compareButton,
-            isComparing && styles.compareButtonActive,
-          ]}
-          onPressIn={() => setIsComparing(true)}
-          onPressOut={() => setIsComparing(false)}
-          delayLongPress={0}
-        >
-          <MaterialIcons
-            name="compare"
-            size={24}
-            color={isComparing ? palette.tint : "rgba(255,255,255,0.6)"}
+        <View style={styles.canvasCard}>
+          <EditorCanvas
+            canvasRef={canvasRef}
+            imageUri={imageUri}
+            adjustments={adjustments}
+            cropAspectRatio={cropAspectRatio}
+            intensity={presetIntensity}
+            showOriginal={isComparing}
+            cropRectNormalized={cropRectNormalized}
+            onImageRectChange={handleImageRectChange}
           />
-        </TouchableOpacity>
+        </View>
+        <View pointerEvents="box-none" style={styles.resetButtonWrapper}>
+          <TouchableOpacity
+            style={styles.resetIconButton}
+            onPress={resetAdjustments}
+          >
+            <MaterialIcons
+              name="history"
+              size={20}
+              color="rgba(255,255,255,0.8)"
+            />
+          </TouchableOpacity>
+        </View>
+        <View pointerEvents="box-none" style={styles.compareButtonWrapper}>
+          <TouchableOpacity
+            style={[
+              styles.compareIconButton,
+              isComparing && styles.compareIconButtonActive,
+            ]}
+            onPressIn={() => setIsComparing(true)}
+            onPressOut={() => setIsComparing(false)}
+            delayLongPress={0}
+          >
+            <MaterialIcons
+              name="splitscreen"
+              size={20}
+              color={isComparing ? "#0f0f11" : "#f5f2eb"}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={[styles.bottomSheet, { height: editorPanelHeight }]}>
+
+      <View style={styles.bottomSheet}>
+        <View style={styles.sheetHandleWrapper}>
+          <View style={styles.sheetHandle} />
+        </View>
         {activeNav === "crop" ? (
           <View style={styles.cropPanel}>
             <View style={styles.sheetHeader}>
@@ -338,9 +397,7 @@ export default function EditorScreen() {
                     <MaterialIcons
                       name={option.icon}
                       size={24}
-                      color={
-                        isActive ? palette.background : "rgba(255,255,255,0.7)"
-                      }
+                      color={isActive ? editorBg : "rgba(255,255,255,0.7)"}
                     />
                     <Text
                       style={[
@@ -366,7 +423,7 @@ export default function EditorScreen() {
                 style={styles.cropButtonPrimary}
                 onPress={handleApplyCrop}
               >
-                <MaterialIcons name="check" size={24} color={palette.tint} />
+                <MaterialIcons name="check" size={24} color={editorAccent} />
               </TouchableOpacity>
             </View>
           </View>
@@ -389,7 +446,7 @@ export default function EditorScreen() {
                   maximumValue={1}
                   value={presetIntensity}
                   step={0.01}
-                  minimumTrackTintColor={palette.tint}
+                  minimumTrackTintColor={editorAccent}
                   maximumTrackTintColor="rgba(255,255,255,0.25)"
                   thumbTintColor="#fff"
                   onValueChange={handlePresetIntensityChange}
@@ -399,7 +456,7 @@ export default function EditorScreen() {
             </View>
             {presetsLoading ? (
               <View style={styles.presetLoading}>
-                <ActivityIndicator color={palette.tint} />
+                <ActivityIndicator color={editorAccent} />
                 <Text style={styles.presetInfo}>Đang tải preset...</Text>
               </View>
             ) : presetsError ? (
@@ -437,25 +494,14 @@ export default function EditorScreen() {
                           isActive && styles.presetThumbWrapperActive,
                         ]}
                       >
-                        <Image
-                          source={
-                            preset.previewUrl
-                              ? { uri: preset.previewUrl }
-                              : require("../assets/images/icon.png")
-                          }
-                          style={styles.presetThumb}
-                          contentFit="cover"
+                        <PresetPreviewThumb
+                          preset={preset}
+                          imageUri={imageUri}
+                          cropAspectRatio={cropAspectRatio}
+                          cropRectNormalized={cropRectNormalized}
                         />
+                        <View style={[styles.presetThumbOverlay]}></View>
                       </View>
-                      <Text
-                        style={[
-                          styles.presetLabel,
-                          isActive && styles.presetLabelActive,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {preset.name}
-                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -485,7 +531,7 @@ export default function EditorScreen() {
                 maximumValue={activeRange.max}
                 value={activeValue}
                 step={0.01}
-                minimumTrackTintColor={palette.tint}
+                minimumTrackTintColor={editorAccent}
                 maximumTrackTintColor="rgba(255,255,255,0.25)"
                 thumbTintColor="#f8fafc"
                 onValueChange={handleSliderChange}
@@ -516,7 +562,7 @@ export default function EditorScreen() {
                         name={config.icon}
                         size={24}
                         color={
-                          isActive ? palette.tint : "rgba(255,255,255,0.6)"
+                          isActive ? editorAccent : "rgba(255,255,255,0.6)"
                         }
                       />
                     </View>
@@ -553,7 +599,7 @@ export default function EditorScreen() {
               <MaterialIcons
                 name={item.icon as keyof typeof MaterialIcons.glyphMap}
                 size={24}
-                color={isActive ? palette.tint : "rgba(255,255,255,0.6)"}
+                color={isActive ? editorAccent : "rgba(255,255,255,0.6)"}
               />
               <Text
                 style={[styles.navLabel, isActive && styles.navLabelActive]}
@@ -574,31 +620,36 @@ export default function EditorScreen() {
           enabled
         />
       )}
+      {saveToastVisible && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.saveToast,
+            {
+              opacity: toastOpacity,
+              transform: [
+                {
+                  translateY: toastOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [12, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.saveToastIcon}>
+            <MaterialIcons name="check" size={14} color="#0f0f11" />
+          </View>
+          <Text style={styles.saveToastLabel}>Image Saved</Text>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
 
 type ResettableSliderProps = SliderProps & {
   onDoubleTapReset?: () => void;
-};
-
-const CompareIcon = ({ active }: { active: boolean }) => {
-  const color = active ? "#04120b" : "#e2e8f0";
-  const faint = active ? "#04120b" : "rgba(226,232,240,0.75)";
-  return (
-    <View style={styles.compareIcon}>
-      <View style={[styles.compareBar, { borderColor: color }]} />
-      <View style={styles.compareDashes}>
-        <View style={[styles.compareDashLong, { backgroundColor: color }]} />
-        {[0, 1, 2].map((i) => (
-          <View
-            key={i}
-            style={[styles.compareDash, { backgroundColor: faint }]}
-          />
-        ))}
-      </View>
-    </View>
-  );
 };
 
 const ResettableSlider = ({
@@ -642,152 +693,255 @@ const ResettableSlider = ({
   );
 };
 
+type PresetPreviewThumbProps = {
+  imageUri?: string | null;
+  preset: Preset;
+  cropAspectRatio: number | null;
+  cropRectNormalized: CropRect;
+};
+
+const PresetPreviewThumb = ({
+  imageUri,
+  preset,
+  cropAspectRatio,
+  cropRectNormalized,
+}: PresetPreviewThumbProps) => {
+  const previewCanvasRef = useCanvasRef();
+  const previewAdjustments = useMemo(
+    () => buildEditorAdjustmentsFromPreset(preset.adjustments),
+    [preset.adjustments]
+  );
+
+  if (!imageUri) {
+    const fallbackSource = preset.previewUrl
+      ? { uri: preset.previewUrl }
+      : require("../assets/images/icon.png");
+    return <Image source={fallbackSource} style={styles.presetThumb} />;
+  }
+
+  return (
+    <View style={styles.presetThumb}>
+      <EditorCanvas
+        canvasRef={previewCanvasRef}
+        imageUri={imageUri}
+        adjustments={previewAdjustments}
+        cropAspectRatio={cropAspectRatio}
+        cropRectNormalized={cropRectNormalized ?? DEFAULT_CROP_RECT}
+        intensity={1}
+        showOriginal={false}
+      />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#020404",
+    backgroundColor: editorBg,
   },
   background: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#020404",
+    backgroundColor: editorBg,
   },
   blobTopLeft: {
     position: "absolute",
-    top: -60,
+    top: -80,
     left: -60,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: "rgba(48,232,119,0.16)",
+    backgroundColor: "rgba(230,176,110,0.08)",
   },
   blobBottomRight: {
     position: "absolute",
-    bottom: 100,
-    right: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: "rgba(15,118,110,0.2)",
+    bottom: 40,
+    right: -120,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: "rgba(18,18,18,0.6)",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 18,
+    marginBottom: 4,
   },
   roundButton: {
     width: 44,
     height: 44,
-    borderRadius: 999,
-    backgroundColor: "rgba(15,23,42,0.6)",
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.07)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
-  historyButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  historyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    backgroundColor: "rgba(15,23,42,0.6)",
+  headerInfo: {
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    gap: 2,
+  },
+  headerTitle: {
+    color: "#f5f2eb",
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  headerSubtitle: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 11,
+    letterSpacing: 3,
+    textTransform: "uppercase",
   },
   saveButton: {
     paddingHorizontal: 24,
     height: 40,
     borderRadius: 999,
-    backgroundColor: palette.tint,
+    backgroundColor: editorAccent,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: editorAccent,
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   saveLabel: {
-    color: "#022c22",
+    color: "#1a1612",
     fontWeight: "700",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   canvasWrapper: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    alignItems: "center",
+  },
+  canvasCard: {
+    flex: 1,
+    width: "100%",
+    position: "relative",
+    borderRadius: 28,
+
+    overflow: "hidden",
+
+    shadowOpacity: 0.4,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  resetButtonWrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 10,
+    pointerEvents: "box-none",
+  },
+  resetIconButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    backgroundColor: "rgba(5,5,5,0.85)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
-  compareButton: {
+  compareButtonWrapper: {
     position: "absolute",
     bottom: 0,
     right: 10,
-    width: 46,
-    height: 46,
-    borderRadius: 27,
-    backgroundColor: "rgba(15,23,42,0.85)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    pointerEvents: "box-none",
+  },
+  compareIconButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(5,5,5,0.85)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
-  compareButtonActive: {
-    backgroundColor: palette.tint,
-    borderColor: "rgba(48,232,119,0.5)",
+  compareIconButtonActive: {
+    backgroundColor: editorAccent,
+    borderColor: editorAccent,
+    shadowColor: editorAccent,
   },
-  compareIcon: {
+  saveToast: {
+    position: "absolute",
+    bottom: 48,
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.555)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
-  compareBar: {
-    width: 14,
-    height: 32,
-    borderWidth: 3,
-    borderRadius: 9,
+  saveToastIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: editorAccent,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  compareDashes: {
-    justifyContent: "space-between",
-    height: 32,
-    paddingVertical: 3,
-  },
-  compareDashLong: {
-    width: 10,
-    height: 4,
-    borderRadius: 2,
-  },
-  compareDash: {
-    width: 8,
-    height: 4,
-    borderRadius: 2,
+  saveToastLabel: {
+    color: "#f5f2eb",
+    fontWeight: "700",
   },
   bottomSheet: {
-    marginTop: 12,
-    backgroundColor: "rgba(8,16,12,0.9)",
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 20,
+    marginTop: 16,
+    backgroundColor: editorSurface,
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: "rgba(255,255,255,0.04)",
+    shadowColor: "#000",
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -4 },
+    gap: 8,
+  },
+  sheetHandleWrapper: {
+    alignItems: "center",
+  },
+  sheetHandle: {
+    width: 42,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
   sheetContent: {
-    gap: 8,
-    paddingBottom: 10,
+    gap: 6,
+    paddingTop: 12,
   },
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   sheetLabel: {
-    color: palette.tint,
+    color: editorAccent,
     textTransform: "uppercase",
-    fontSize: 14,
-    letterSpacing: 3,
+    fontSize: 12,
+    letterSpacing: 4,
     marginBottom: 4,
   },
   sheetTitle: {
@@ -797,15 +951,16 @@ const styles = StyleSheet.create({
   },
   valuePill: {
     paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(15,23,42,0.6)",
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   valueText: {
-    color: "#f8fafc",
+    color: "#f5f2eb",
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
@@ -820,22 +975,22 @@ const styles = StyleSheet.create({
   cropRow: {
     flexDirection: "row",
     gap: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   cropItem: {
     width: 72,
     height: 72,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    backgroundColor: "rgba(255,255,255,0.02)",
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(255,255,255,0.03)",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
   },
   cropItemActive: {
-    borderColor: palette.tint,
-    backgroundColor: "rgba(48,232,119,0.12)",
+    borderColor: editorAccent,
+    backgroundColor: "rgba(230,176,110,0.12)",
   },
   cropLabel: {
     color: "rgba(255,255,255,0.7)",
@@ -843,10 +998,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   cropLabelActive: {
-    color: palette.background,
+    color: editorAccent,
   },
   cropHint: {
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.55)",
     fontSize: 12,
   },
   cropActions: {
@@ -861,23 +1016,17 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
-  },
-  cropButtonSecondaryLabel: {
-    color: "#fff",
-    fontWeight: "600",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   cropButtonPrimary: {
     flex: 1,
     height: 44,
     borderRadius: 14,
-    borderColor: palette.tint,
+    borderColor: editorAccent,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  cropButtonPrimaryLabel: {
-    color: "#04120b",
-    fontWeight: "700",
+    backgroundColor: "rgba(230,176,110,0.15)",
   },
   adjustmentRow: {
     flexDirection: "row",
@@ -895,13 +1044,14 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.02)",
   },
   adjustmentIconActive: {
-    borderColor: palette.tint,
-    backgroundColor: "rgba(48,232,119,0.08)",
+    borderColor: editorAccent,
+    backgroundColor: "rgba(230,176,110,0.12)",
   },
   adjustmentLabel: {
     fontSize: 11,
@@ -915,16 +1065,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 16,
     width: "100%",
-    gap: 12,
+    gap: 6,
   },
   intensityHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  intensityLabel: {
-    color: "#fff",
-    fontWeight: "600",
   },
   presetRow: {
     gap: 10,
@@ -946,26 +1092,27 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.15)",
     overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
+
   presetThumbWrapperActive: {
-    borderColor: palette.tint,
-    shadowColor: palette.tint,
+    borderColor: editorAccent,
+    shadowColor: editorAccent,
     shadowOpacity: 0.25,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 6 },
   },
   presetThumb: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 18,
+    width: 100,
+    height: 100,
+    resizeMode: "cover",
+    userSelect: "none",
   },
-  presetLabel: {
-    color: "rgba(255,255,255,0.7)",
-    fontWeight: "600",
-    fontSize: 11,
-  },
-  presetLabelActive: {
-    color: palette.tint,
+  presetThumbOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.01)",
   },
   presetLoading: {
     paddingVertical: 32,
@@ -982,7 +1129,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.08)",
     padding: 16,
     gap: 10,
-    backgroundColor: "rgba(2,6,23,0.6)",
+    backgroundColor: "rgba(10,10,12,0.85)",
   },
   retryButton: {
     alignSelf: "flex-start",
@@ -998,26 +1145,32 @@ const styles = StyleSheet.create({
   },
   navRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
+    gap: 10,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
   },
   navItem: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 14,
     alignItems: "center",
-    gap: 2,
-    backgroundColor: "rgba(255,255,255,0.02)",
+    gap: 4,
+    backgroundColor: "transparent",
   },
   navItemActive: {
-    backgroundColor: "rgba(48,232,119,0.12)",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: editorAccent,
   },
   navLabel: {
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.55)",
     fontSize: 12,
     fontWeight: "600",
   },
   navLabelActive: {
-    color: "#fff",
+    color: "#f5f2eb",
   },
 });

@@ -2,177 +2,154 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Halook Camera - Mint Consistent</title>
+<title>Halook Camera</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#30e877", 
-                        "primary-dim": "#28cf68",
-                        "primary-light": "#dcfce9",
-                        "glass-border": "rgba(48, 232, 119, 0.3)",
-                        "glass-bg": "rgba(255, 255, 255, 0.08)",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"]
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                        'glass-sm': '0 4px 16px 0 rgba(0, 0, 0, 0.2)',
-                        'glow': '0 0 20px rgba(48, 232, 119, 0.6)',
-                        'glow-sm': '0 0 10px rgba(48, 232, 119, 0.4)',
-                    }
-                },
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#d19a66", // Warm golden brown
+              "primary-dark": "#a67b51",
+              "primary-vibrant": "#e0a66d", // More vibrant version for icons
+              "background-light": "#f6f7f8",
+              "background-dark": "#0f0f11", // Deep dark charcoal
+              "surface": "#1c1c1e",
+              "text-cream": "#e8e6e3", // Cream white text
             },
-        }
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            boxShadow: {
+              'glow': '0 0 15px rgba(209,154,102,0.3)',
+              'glow-sm': '0 0 8px rgba(209,154,102,0.2)',
+            }
+          },
+        },
+      }
     </script>
-<style>
-        .no-scrollbar::-webkit-scrollbar {
+<style>.no-scrollbar::-webkit-scrollbar {
             display: none;
         }
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        .material-symbols-outlined {
-            font-variation-settings: 'wght' 300;
-        }
-        .icon-light {
-            font-variation-settings: 'wght' 200;
-        }
-        .glass-panel {
-            background: linear-gradient(135deg, rgba(20, 20, 20, 0.4), rgba(48, 232, 119, 0.05));
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(48, 232, 119, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-        }
-        .glass-button {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(48, 232, 119, 0.05));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            color: rgba(255, 255, 255, 0.9);
-        }
-        .glass-button:active {
-            background: rgba(48, 232, 119, 0.2);
-            border-color: rgba(48, 232, 119, 0.5);
-            transform: scale(0.96);
-        }
-        .shutter-ring {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(48, 232, 119, 0.1) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }.wheel-tick {
-            width: 1px;
-            background-color: rgba(255,255,255,0.5);
-            border-radius: 1px;
-        }
-        .wheel-tick.major {
-            height: 16px;
-            background-color: rgba(255,255,255,0.9);
-            width: 1.5px;
-        }
-        .wheel-tick.minor {
-            height: 8px;
-        }
+    </style>
+<style>
         body {
-            min-height: max(884px, 100dvh);
+          min-height: max(884px, 100dvh);
         }
     </style>
 <style>
     body {
       min-height: max(884px, 100dvh);
     }
+    .sharp-icon {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .filled-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
   </style>
   </head>
-<body class="font-display bg-black text-white overflow-hidden select-none">
-<div class="relative h-screen w-full flex flex-col bg-black">
-<div class="absolute inset-0 w-full h-full z-0">
-<img alt="Camera viewfinder showing a scenic mountain landscape during sunset" class="w-full h-full object-cover opacity-90" data-alt="Scenic mountain landscape at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKuOd76RhcG2nwye1C-yJSgzFIGaIiV3f8563IYanetfgsnEGM_ILgr_lRSGSJSzrYDTcCkan2X7UWXxi7EHcFBUyWX659CHqvmGn0CK1C69VEcJhRSs96mdijEgJ-XCFGEDzGbcWogzBdv_-8RRro2IE3X3FX0-28wq0AKv7a2_lZSpH3SQFvs39sQFEDe6lBenmHlrCRGiMYJtURkqXWVNuNEN_H2iTmWTnD67S2K_UJkZeyUt1jzaNrdZBuJ5vw9f_k-VnCZYE"/>
-<div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none"></div>
-<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-24 border border-primary/40 pointer-events-none opacity-80 rounded-xl backdrop-blur-[1px] shadow-glow-sm">
-<div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary rounded-tl-lg shadow-[0_0_8px_rgba(48,232,119,0.6)]"></div>
-<div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary rounded-tr-lg shadow-[0_0_8px_rgba(48,232,119,0.6)]"></div>
-<div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary rounded-bl-lg shadow-[0_0_8px_rgba(48,232,119,0.6)]"></div>
-<div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary rounded-br-lg shadow-[0_0_8px_rgba(48,232,119,0.6)]"></div>
-<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-1.5 bg-primary rounded-full shadow-[0_0_10px_rgba(48,232,119,1)]"></div>
-</div>
-</div>
-<div class="relative z-20 flex justify-between items-center px-6 pt-14 pb-4 w-full">
-<button class="size-11 flex items-center justify-center rounded-full glass-button transition-all duration-300 group">
-<span class="material-symbols-outlined text-white/90 group-hover:text-primary transition-colors icon-light" style="font-size: 22px;">flash_off</span>
+<body class="bg-black text-text-cream font-display overflow-hidden h-screen w-full flex flex-col select-none">
+<div class="relative z-20 flex w-full items-center justify-between px-6 py-4 bg-gradient-to-b from-black/90 to-transparent pt-12">
+<button class="flex size-10 items-center justify-center rounded-full bg-[#1c1c1e]/40 backdrop-blur-md active:bg-[#d19a66]/20 transition-all border border-white/5 hover:border-[#d19a66]/40 hover:text-[#d19a66] group">
+<span class="material-symbols-outlined text-[#e8e6e3] group-hover:text-[#e0a66d] sharp-icon transition-colors" style="font-size: 22px;">flash_off</span>
 </button>
-<div class="flex gap-4">
-<button class="size-11 flex items-center justify-center rounded-full glass-button transition-all duration-300 group">
-<span class="material-symbols-outlined text-white/90 group-hover:text-primary transition-colors icon-light" style="font-size: 22px;">hdr_auto</span>
+<button class="flex h-8 px-4 items-center justify-center rounded-full bg-[#1c1c1e]/40 backdrop-blur-md gap-1 active:bg-[#d19a66]/20 transition-colors border border-white/10 hover:border-[#d19a66]/50 group">
+<span class="text-xs font-bold tracking-wide text-[#d19a66] group-hover:text-[#e0a66d]">4:3</span>
+<span class="material-symbols-outlined text-[#d19a66] group-hover:text-[#e0a66d]" style="font-size: 16px;">expand_more</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-full bg-[#1c1c1e]/40 backdrop-blur-md active:bg-[#d19a66]/20 transition-all border border-white/5 hover:border-[#d19a66]/40 group">
+<span class="material-symbols-outlined text-[#e8e6e3] group-hover:text-[#e0a66d] sharp-icon transition-colors" style="font-size: 22px;">settings</span>
 </button>
 </div>
-<button class="size-11 flex items-center justify-center rounded-full glass-button transition-all duration-300 group">
-<span class="material-symbols-outlined text-white/90 group-hover:text-primary transition-colors icon-light" style="font-size: 22px;">tune</span>
+<div class="absolute inset-0 z-0 h-full w-full bg-[#0f0f11]">
+<img alt="Camera Viewfinder Preview" class="h-full w-full object-cover opacity-80 mix-blend-overlay" data-alt="Mountain landscape photography viewfinder preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6DXjI9Fm07DMwqz-khWw0j4E6CtARi0QJvnYP2roVSf2-U076_YCNFFXf2cuwLi5I1jP5LsOha0mQf9A4VDQrOHc9WG_HIA7b8HgI1ZC8mOq5GPPV9hxBe_Xz99_kNT_oyV9tuncOgyIpY0wfzr0r4C4I3EP1VkpsU8gEXtcQZSDOwb1mzAJfLlCXYTtybmJmq6_XtgBm_fHepUeKB12zSOZIT54hJcB97k0nqbad1l4Rw08qL5h4VT5fvWLGsRrj_ozOOcJ9lOw"/>
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1GC4Aub5lBZN1KVYLC6iws-vUGteEKb4KQEp2NJaMvAziiNt2ALjQ01dnZOXs2BEiu1eIhS_gaDLVS55Zn2begT7U3wkgRSP6XB8z5Cc6iPWrPgRQpcs_N_oxdS1SbwYu1NqReUC-Of4y1LkYxFLW1WYv_ZIhVIfHRtBFygNltInvQM934S7Ua67kmNZYmdT17c6DDgrbbmnouK-JRMlo8f8EEsfviqgv2C0YwUYkaSoiqeJd8X-1rE8G1hMH6EW5xt_0HLxlLmQ');"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-[0.5px] border-[#d19a66]/60 border-dashed rounded-sm flex items-center justify-center pointer-events-none opacity-90 shadow-glow-sm">
+<div class="w-1 h-1 bg-[#e0a66d] rounded-full shadow-[0_0_6px_#e0a66d]"></div>
+</div>
+<div class="absolute inset-0 grid grid-cols-3 pointer-events-none opacity-10">
+<div class="border-r border-[#e8e6e3]"></div>
+<div class="border-r border-[#e8e6e3]"></div>
+<div></div>
+</div>
+<div class="absolute inset-0 grid grid-rows-3 pointer-events-none opacity-10">
+<div class="border-b border-[#e8e6e3]"></div>
+<div class="border-b border-[#e8e6e3]"></div>
+<div></div>
+</div>
+</div>
+<div class="absolute bottom-0 z-20 w-full flex flex-col items-center pb-8 pt-16 bg-gradient-to-t from-[#050505] via-[#0f0f11]/95 to-transparent">
+<div class="w-full max-w-sm mb-8 px-4">
+<div class="flex items-center justify-center gap-2 bg-[#1c1c1e]/60 backdrop-blur-xl rounded-full p-1.5 border border-white/5 mx-auto w-fit shadow-lg ring-1 ring-white/5">
+<button class="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5 transition-all">
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-[#e0a66d] transition-colors">.5</span>
+</button>
+<button class="group relative flex items-center justify-center w-9 h-9 rounded-full bg-[#d19a66] shadow-glow transition-all transform scale-105 border border-[#e0a66d]/30">
+<span class="text-xs font-bold text-[#0f0f11]">1x</span>
+</button>
+<button class="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5 transition-all">
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-[#e0a66d] transition-colors">2</span>
+</button>
+<button class="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5 transition-all">
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-[#e0a66d] transition-colors">3</span>
+</button>
+<button class="group relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5 transition-all">
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-[#e0a66d] transition-colors">5</span>
 </button>
 </div>
-<div class="flex-grow z-10"></div>
-<div class="relative z-20 flex flex-col w-full pb-10 pt-6">
-<div class="flex justify-center items-center gap-4 mb-8">
-<button class="size-11 flex items-center justify-center rounded-full glass-button font-bold text-[13px] tracking-wide text-white shadow-glass-sm active:scale-95 transition-all duration-300 hover:bg-white/10 ring-1 ring-white/20">
-                4:3
+<div class="flex justify-center gap-1.5 mt-3 opacity-60 h-2 items-end overflow-hidden w-full max-w-[180px] mx-auto mask-linear-gradient">
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1.5px] h-2 bg-[#e0a66d] shadow-[0_0_6px_rgba(224,166,109,0.8)]"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+<div class="w-[1px] h-1 bg-[#e8e6e3]/30"></div>
+</div>
+</div>
+<div class="flex items-center justify-between w-full px-10 max-w-md">
+<div class="flex-1 flex justify-start">
+<button class="relative overflow-hidden rounded-md size-14 border border-[#e8e6e3]/10 active:scale-95 transition-all hover:border-[#e0a66d] hover:shadow-glow-sm group bg-[#1c1c1e]">
+<img alt="Gallery" class="h-full w-full object-cover opacity-60 group-hover:opacity-100 transition-opacity sepia-[0.1]" data-alt="Recent photo gallery thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtgh7V5CVM2KEXsUZSDD7w1hwWGYHmoMpQ2puC1FUzfcnAT1ZcjbwCY2YdZqZHpo-FfBfXREJWhpQrnJ7ewyNDGZxLSjx9pKtLGpRWoviVc0giphgvpXRNUk69NZsP-4VAdcrdkvgdSPAy8DYUqs9YKRw-4dJ-h6T_RfvPehDn_PovmHKCkkCiEFgIvuB43mCGnHpotmvEh27Zh1f1hEhybcvpyaB0ock5U95Zp7rMAqp7ay-xf7LWfA9bFOXRpbD5luBKxBOLpEQ"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-[#d19a66]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+</div>
+<div class="flex-1 flex justify-center">
+<button class="relative group size-20 rounded-full border border-[#e8e6e3]/20 flex items-center justify-center bg-transparent active:scale-95 transition-all duration-150 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+<div class="size-[68px] rounded-full bg-[#e8e6e3] group-active:bg-[#e0a66d] group-active:scale-90 transition-all duration-150 shadow-inner ring-4 ring-black/20"></div>
+<div class="absolute inset-0 rounded-full border-[2px] border-[#e0a66d]/0 group-active:border-[#e0a66d]/100 scale-105 transition-all duration-300"></div>
+</button>
+</div>
+<div class="flex-1 flex justify-end">
+<button class="flex size-14 items-center justify-center rounded-full bg-[#1c1c1e]/40 backdrop-blur-md active:bg-[#2c2c2e] active:scale-95 transition-all group border border-white/5 hover:border-[#e0a66d]/50 hover:bg-[#e0a66d]/10 hover:shadow-glow-sm">
+<span class="material-symbols-outlined text-[#e8e6e3] group-hover:rotate-180 transition-all duration-500 ease-in-out group-hover:text-[#e0a66d] sharp-icon" style="font-size: 26px;">cameraswitch</span>
+</button>
+</div>
+</div>
+<div class="mt-8 flex gap-8 text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase items-center">
+<button class="hover:text-[#e8e6e3] transition-colors py-1">Video</button>
+<button class="text-[#e0a66d] relative py-1 after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-[#e0a66d] after:rounded-full after:shadow-[0_0_6px_#e0a66d]">
+                Photo
             </button>
-</div>
-<div class="w-full mb-10 relative flex flex-col items-center">
-<div class="text-[#30e877] font-bold text-lg mb-3 tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">1.0x</div>
-<div class="relative w-full h-14 flex items-center justify-center overflow-hidden">
-<div class="absolute inset-x-0 h-full bg-gradient-to-r from-black/90 via-transparent to-black/90 z-20 pointer-events-none"></div>
-<div class="absolute inset-0 glass-panel rounded-lg mx-4 opacity-40"></div>
-<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-[#30e877] rounded-full shadow-[0_0_12px_rgba(48,232,119,0.8)] z-30"></div>
-<div class="flex items-center gap-[14px] px-8 opacity-90 z-10">
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick major"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick major"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="w-8"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick major"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick major"></div>
-<div class="wheel-tick minor"></div>
-<div class="wheel-tick minor"></div>
+<button class="hover:text-[#e8e6e3] transition-colors py-1">Portrait</button>
 </div>
 </div>
-</div>
-<div class="flex items-center justify-between px-10 pb-4">
-<button class="relative size-[60px] glass-panel rounded-2xl p-1 group transition-transform active:scale-95 border-primary/20 hover:border-primary/40">
-<div class="w-full h-full overflow-hidden rounded-xl relative">
-<img alt="Thumbnail of last taken photo showing friends eating" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="Group of friends dining" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRzfhUrLeJuq_GAAaCjxkli90CHndFwBv-bFO7-uiBabpcFbMeTdlOzuLGyOIxIrH9TyjgOtFCHsk5XVQSaqwVzlMgAiKHs5F96D2sivPyGl3y-SNetJQj08BdF41wnukQ9789465c-BOqhdpwkBIPaXcOxGWFDOTTPHyvfqgp54AWOQGNkjY_zCJ7stm8T4LofgMMR7b9btozmI8xey8B2m-WCYWurbZlyH-ZEiPHqS1af4qlKbeajXozChcPUQEmbMZCYiEPXVg"/>
-<div class="absolute inset-0 ring-1 ring-inset ring-black/20 rounded-xl"></div>
-</div>
-</button>
-<button class="group relative flex items-center justify-center">
-<div class="size-[84px] rounded-full shutter-ring backdrop-blur-md shadow-glass group-active:scale-95 transition-all duration-300 group-active:border-primary/50"></div>
-<div class="absolute size-[70px] rounded-full bg-white shadow-[inset_0_-4px_8px_rgba(0,0,0,0.1),0_0_20px_rgba(48,232,119,0.4)] group-active:bg-primary group-active:shadow-[0_0_30px_rgba(48,232,119,0.8)] transition-all duration-200 border-[3px] border-transparent bg-clip-padding flex items-center justify-center">
-<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/10 to-transparent opacity-50"></div>
-</div>
-</button>
-<button class="size-[60px] rounded-full glass-panel flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 active:rotate-180 active:bg-primary/20 transition-all duration-500 group">
-<span class="material-symbols-outlined text-white/90 group-hover:text-primary transition-colors icon-light" style="font-size: 28px;">flip_camera_ios</span>
-</button>
-</div>
-</div>
-</div>
-
 </body></html>

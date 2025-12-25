@@ -56,6 +56,9 @@ const normalizeRect = (rect: CropRect): CropRect => {
   return { x, y, w, h };
 };
 
+const overlayAccent = "#e6b06e";
+const overlayHandleFill = "rgba(8,8,8,0.8)";
+
 const clampCropRect = (
   rect: CropRect,
   minSize = 0.05
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
   selection: {
     position: "absolute",
     borderWidth: 2,
-    borderColor: "#38f29b",
+    borderColor: overlayAccent,
   },
   handleBase: {
     position: "absolute",
@@ -355,8 +358,8 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#38f29b",
-    backgroundColor: "rgba(19,47,34,0.8)",
+    borderColor: overlayAccent,
+    backgroundColor: overlayHandleFill,
     top: -10,
     left: -10,
   },
@@ -376,8 +379,8 @@ const styles = StyleSheet.create({
     marginLeft: -14,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#38f29b",
-    backgroundColor: "rgba(19,47,34,0.8)",
+    borderColor: overlayAccent,
+    backgroundColor: overlayHandleFill,
   },
   handleEdgeBottom: {
     top: undefined,
@@ -391,8 +394,8 @@ const styles = StyleSheet.create({
     marginTop: -14,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: "#38f29b",
-    backgroundColor: "rgba(19,47,34,0.8)",
+    borderColor: overlayAccent,
+    backgroundColor: overlayHandleFill,
   },
   handleEdgeRight: {
     left: undefined,
