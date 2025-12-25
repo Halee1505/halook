@@ -123,9 +123,6 @@ export default function EditorScreen() {
   const setPresetIntensity = useEditorState(
     (state) => state.setPresetIntensity
   );
-  const setCropAspectRatio = useEditorState(
-    (state) => state.setCropAspectRatio
-  );
   const applyPreset = useEditorState((state) => state.applyPreset);
   const cropRectNormalized = useEditorState(
     (state) => state.cropRectNormalized
@@ -162,22 +159,30 @@ export default function EditorScreen() {
   } = usePresetList();
 
   const cropStateRef = useRef({
-    rect: cropRectNormalized,
+    rect: { ...cropRectNormalized },
     ratio: cropAspectRatio,
     modeId: cropModeId,
   });
 
   useEffect(() => {
+    if (activeNav === "crop") {
+      return;
+    }
     cropStateRef.current = {
-      rect: cropRectNormalized,
+      rect: { ...cropRectNormalized },
       ratio: cropAspectRatio,
       modeId: cropModeId,
     };
-  }, [cropRectNormalized, cropAspectRatio, cropModeId]);
+  }, [cropRectNormalized, cropAspectRatio, cropModeId, activeNav]);
 
   useEffect(() => {
     if (activeNav === "crop") {
-      setCropSession(cropStateRef.current);
+      const snapshot = cropStateRef.current;
+      setCropSession({
+        rect: { ...snapshot.rect },
+        ratio: snapshot.ratio,
+        modeId: snapshot.modeId,
+      });
     } else {
       setCropSession(null);
     }
@@ -263,6 +268,42 @@ export default function EditorScreen() {
     applyPreset(preset);
     setActiveNav("presets");
   };
+
+  const computeCropRectForRatio = useCallback(
+    (ratio: number | null, baseRect: CropRect) => {
+      if (!ratio) {
+        return { ...DEFAULT_CROP_RECT };
+      }
+
+      const currentAspect = baseRect.w / baseRect.h;
+      let targetW = baseRect.w;
+      let targetH = baseRect.h;
+      if (currentAspect > ratio) {
+        targetW = baseRect.h * ratio;
+      } else {
+        targetH = baseRect.w / ratio;
+      }
+      const centeredX = baseRect.x + (baseRect.w - targetW) / 2;
+      const centeredY = baseRect.y + (baseRect.h - targetH) / 2;
+      return {
+        x: centeredX,
+        y: centeredY,
+        w: targetW,
+        h: targetH,
+      };
+    },
+    []
+  );
+
+  const handleCropRatioChange = useCallback(
+    (ratio: number | null, modeId: string) => {
+      const reference = cropSession ?? cropStateRef.current;
+      const baseRect = reference?.rect ?? DEFAULT_CROP_RECT;
+      const nextRect = computeCropRectForRatio(ratio, baseRect);
+      setCropState(nextRect, ratio, modeId);
+    },
+    [computeCropRectForRatio, cropSession, setCropState]
+  );
 
   const handleCancelCrop = () => {
     if (cropSession) {
@@ -391,7 +432,7 @@ export default function EditorScreen() {
                     key={option.id}
                     style={[styles.cropItem, isActive && styles.cropItemActive]}
                     onPress={() =>
-                      setCropAspectRatio(option.ratio ?? null, option.id)
+                      handleCropRatioChange(option.ratio ?? null, option.id)
                     }
                   >
                     <MaterialIcons
