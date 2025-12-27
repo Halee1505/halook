@@ -17,6 +17,7 @@ import * as MediaLibrary from "expo-media-library";
 import { ensureLibraryPermissions } from "@/src/services/imageLoader";
 import {
   applyPresetIntensity,
+  applyColorMixIntensity,
   buildShaderUniforms,
 } from "@/src/engine/presetMath";
 import {
@@ -25,13 +26,18 @@ import {
   isFullscreenCrop,
 } from "@/src/engine/cropMath";
 import type { CropRect, EditorAdjustments } from "@/src/models/editor";
-import { presetRuntimeEffect, createPresetShader } from "@/src/engine/presetEngineSkia";
+import type { ColorMixAdjustments } from "@/src/models/presets";
+import {
+  presetRuntimeEffect,
+  createPresetShader,
+} from "@/src/engine/presetEngineSkia";
 
 const dateStamp = () => new Date().toISOString().replace(/[:.]/g, "-");
 
 type ExportOptions = {
   imageUri: string;
   adjustments: EditorAdjustments;
+  colorMix: ColorMixAdjustments;
   intensity: number;
   cropAspectRatio: number | null;
   cropRect?: CropRect;
@@ -40,13 +46,19 @@ type ExportOptions = {
 export const exportCanvasToCameraRoll = async ({
   imageUri,
   adjustments,
+  colorMix,
   intensity,
   cropAspectRatio,
   cropRect,
 }: ExportOptions) => {
   const sourceImage = await loadSkImage(imageUri);
   const target = cropImage(sourceImage, cropRect);
-  const processed = renderWithAdjustments(target, adjustments, intensity);
+  const processed = renderWithAdjustments(
+    target,
+    adjustments,
+    colorMix,
+    intensity
+  );
   const base64 = processed.encodeToBase64(ImageFormat.JPEG, 94);
   if (!base64) {
     throw new Error("Failed to encode image");
@@ -120,6 +132,7 @@ const makeSubset = (
 const renderWithAdjustments = (
   image: SkImage,
   adjustments: EditorAdjustments,
+  colorMix: ColorMixAdjustments,
   intensity: number
 ) => {
   const width = image.width();
@@ -140,8 +153,9 @@ const renderWithAdjustments = (
     matrix
   );
   const applied = applyPresetIntensity(adjustments, intensity);
+  const appliedColorMix = applyColorMixIntensity(colorMix, intensity);
   const shader = presetRuntimeEffect
-    ? createPresetShader(imageShader, imageShader, applied)
+    ? createPresetShader(imageShader, imageShader, applied, appliedColorMix)
     : null;
   const paint = Skia.Paint();
 

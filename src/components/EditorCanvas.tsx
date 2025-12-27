@@ -26,9 +26,10 @@ import {
 } from "@shopify/react-native-skia";
 import { EncodingType, readAsStringAsync } from "expo-file-system/legacy";
 
-import { applyPresetIntensity, buildShaderUniforms } from "@/src/engine/presetMath";
+import { applyPresetIntensity, applyColorMixIntensity, buildShaderUniforms } from "@/src/engine/presetMath";
 import { clampCropRect, isFullscreenCrop } from "@/src/engine/cropMath";
 import type { EditorAdjustments, CropRect } from "@/src/models/editor";
+import type { ColorMixAdjustments } from "@/src/models/presets";
 import { presetRuntimeEffect } from "../engine/presetEngineSkia";
 
 type CanvasRef = ReturnType<typeof useCanvasRef>;
@@ -36,6 +37,7 @@ type CanvasRef = ReturnType<typeof useCanvasRef>;
 type Props = {
   imageUri?: string | null;
   adjustments: EditorAdjustments;
+  colorMix: ColorMixAdjustments;
   canvasRef: CanvasRef;
   cropAspectRatio?: number | null;
   intensity?: number;
@@ -124,6 +126,7 @@ const useSkiaImage = (uri?: string | null): SkImage | null => {
 export const EditorCanvas = ({
   imageUri,
   adjustments,
+  colorMix,
   canvasRef,
   cropAspectRatio,
   intensity = 1,
@@ -169,20 +172,15 @@ export const EditorCanvas = ({
     reportLayout();
   }, [reportLayout]);
 
-  const uniforms = useMemo(
-    () => {
-      const appliedAdjustments = applyPresetIntensity(adjustments, intensity);
-      const computedUniforms = buildShaderUniforms(appliedAdjustments);
-      // console.log("[EditorCanvas] applying adjustments", {
-      //   adjustments,
-      //   intensity,
-      //   appliedAdjustments,
-      //   uniforms: computedUniforms,
-      // });
-      return computedUniforms;
-    },
-    [adjustments, intensity]
-  );
+  const uniforms = useMemo(() => {
+    const appliedAdjustments = applyPresetIntensity(adjustments, intensity);
+    const appliedColorMix = applyColorMixIntensity(colorMix, intensity);
+    const computedUniforms = buildShaderUniforms(
+      appliedAdjustments,
+      appliedColorMix
+    );
+    return computedUniforms;
+  }, [adjustments, colorMix, intensity]);
 
   const imageAspect = image ? image.width() / image.height() : 3 / 4;
   const effectiveCrop = useMemo(() => {

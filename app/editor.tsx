@@ -25,6 +25,7 @@ import { DEFAULT_CROP_RECT } from "@/src/engine/cropMath";
 import {
   adjustmentRanges,
   buildEditorAdjustmentsFromPreset,
+  createDefaultColorMix,
 } from "@/src/engine/presetMath";
 import { useEditorState } from "@/src/hooks/useEditorState";
 import { usePresetList } from "@/src/hooks/usePresets";
@@ -33,7 +34,8 @@ import {
   type AdjustmentKey,
   type CropRect,
 } from "@/src/models/editor";
-import type { Preset } from "@/src/models/presets";
+import type { ColorChannel, Preset } from "@/src/models/presets";
+import { COLOR_CHANNELS } from "@/src/models/presets";
 import { exportCanvasToCameraRoll } from "@/src/services/imageExporter";
 
 const editorAccent = "#e6b06e";
@@ -111,12 +113,42 @@ const ADJUSTMENT_UI: Record<
 
 type NavId = "presets" | "adjust" | "crop" | "mask";
 
+const COLOR_MIX_CHANNEL_UI: Record<
+  ColorChannel,
+  { label: string; tint: string }
+> = {
+  red: { label: "Red", tint: "#ef4444" },
+  orange: { label: "Orange", tint: "#f97316" },
+  yellow: { label: "Yellow", tint: "#facc15" },
+  green: { label: "Green", tint: "#22c55e" },
+  aqua: { label: "Aqua", tint: "#2dd4bf" },
+  blue: { label: "Blue", tint: "#3b82f6" },
+  purple: { label: "Purple", tint: "#a855f7" },
+  magenta: { label: "Magenta", tint: "#ec4899" },
+};
+
+const MIXER_FIELD_LABELS: Record<"hue" | "saturation" | "luminance", string> = {
+  hue: "Hue",
+  saturation: "Saturation",
+  luminance: "Luminance",
+};
+
+const MIXER_FIELD_BY_KEY: Partial<
+  Record<AdjustmentKey, "hue" | "saturation" | "luminance">
+> = {
+  mixerHue: "hue",
+  mixerSaturation: "saturation",
+  mixerLuminance: "luminance",
+};
+
 export default function EditorScreen() {
   const router = useRouter();
   const canvasRef = useCanvasRef();
   const imageUri = useEditorState((state) => state.imageUri);
   const adjustments = useEditorState((state) => state.adjustments);
+  const colorMix = useEditorState((state) => state.colorMix);
   const updateAdjustment = useEditorState((state) => state.updateAdjustment);
+  const setColorMixValue = useEditorState((state) => state.setColorMixValue);
   const cropAspectRatio = useEditorState((state) => state.cropAspectRatio);
   const cropModeId = useEditorState((state) => state.cropModeId);
   const presetIntensity = useEditorState((state) => state.presetIntensity);
@@ -136,6 +168,8 @@ export default function EditorScreen() {
   const [activeAdjustment, setActiveAdjustment] =
     useState<AdjustmentKey>("exposure");
   const [activeNav, setActiveNav] = useState<NavId>("adjust");
+  const [activeMixerChannel, setActiveMixerChannel] =
+    useState<ColorChannel>("red");
   const [isComparing, setIsComparing] = useState(false);
   const [cropSession, setCropSession] = useState<{
     rect: typeof cropRectNormalized;
@@ -157,6 +191,9 @@ export default function EditorScreen() {
     error: presetsError,
     reload: reloadPresets,
   } = usePresetList();
+  const handleExitMixer = () => {
+    setActiveAdjustment("tint");
+  };
 
   const cropStateRef = useRef({
     rect: { ...cropRectNormalized },
@@ -189,7 +226,21 @@ export default function EditorScreen() {
   }, [activeNav]);
 
   const activeRange = adjustmentRanges[activeAdjustment];
-  const activeValue = adjustments[activeAdjustment];
+  const activeMixerField = MIXER_FIELD_BY_KEY[activeAdjustment] ?? null;
+  const isColorMixMode = !!activeMixerField;
+
+  const activeValue = useMemo(() => {
+    if (activeMixerField) {
+      return colorMix[activeMixerField][activeMixerChannel];
+    }
+    return adjustments[activeAdjustment];
+  }, [
+    activeAdjustment,
+    activeMixerChannel,
+    activeMixerField,
+    adjustments,
+    colorMix,
+  ]);
 
   const [saveToastVisible, setSaveToastVisible] = useState(false);
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -227,6 +278,7 @@ export default function EditorScreen() {
       const savedUri = await exportCanvasToCameraRoll({
         imageUri,
         adjustments,
+        colorMix,
         intensity: presetIntensity,
         cropAspectRatio,
         cropRect: cropRectNormalized,
@@ -243,9 +295,23 @@ export default function EditorScreen() {
     }
   };
 
-  const handleSliderChange = (value: number) => {
-    updateAdjustment(activeAdjustment, parseFloat(value.toFixed(2)));
-  };
+  const handleSliderChange = useCallback(
+    (value: number) => {
+      const rounded = parseFloat(value.toFixed(3));
+      if (activeMixerField) {
+        setColorMixValue(activeMixerChannel, activeMixerField, rounded);
+        return;
+      }
+      updateAdjustment(activeAdjustment, parseFloat(value.toFixed(2)));
+    },
+    [
+      activeAdjustment,
+      activeMixerChannel,
+      activeMixerField,
+      setColorMixValue,
+      updateAdjustment,
+    ]
+  );
 
   const handleNavPress = (id: NavId) => {
     if (id === "mask") {
@@ -256,9 +322,13 @@ export default function EditorScreen() {
   };
 
   const formattedValue = useMemo(() => {
+    if (isColorMixMode) {
+      const percent = Math.round(activeValue * 100);
+      return `${percent >= 0 ? "+" : ""}${percent}`;
+    }
     const value = activeValue;
     return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
-  }, [activeValue]);
+  }, [activeValue, isColorMixMode]);
 
   const handlePresetIntensityChange = (value: number) => {
     setPresetIntensity(parseFloat(value.toFixed(2)));
@@ -368,6 +438,7 @@ export default function EditorScreen() {
             canvasRef={canvasRef}
             imageUri={imageUri}
             adjustments={adjustments}
+            colorMix={colorMix}
             cropAspectRatio={cropAspectRatio}
             intensity={presetIntensity}
             showOriginal={isComparing}
@@ -556,10 +627,25 @@ export default function EditorScreen() {
           >
             <View style={styles.sheetHeader}>
               <View>
-                <Text style={styles.sheetLabel}>Adjustment</Text>
-                <Text style={styles.sheetTitle}>
-                  {ADJUSTMENT_UI[activeAdjustment].label}
-                </Text>
+                {isColorMixMode && activeMixerField ? (
+                  <View style={styles.sheetLabelRow}>
+                    <TouchableOpacity
+                      style={styles.hslBackButton}
+                      onPress={handleExitMixer}
+                    >
+                      <MaterialIcons
+                        name="arrow-back-ios-new"
+                        size={12}
+                        color="#f8fafc"
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.sheetTitle}>
+                      {ADJUSTMENT_UI[activeAdjustment].label}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.sheetLabel}>Adjustment</Text>
+                )}
               </View>
               <View style={styles.valuePill}>
                 <Text style={styles.valueText}>{formattedValue}</Text>
@@ -579,46 +665,79 @@ export default function EditorScreen() {
                 onDoubleTapReset={() => handleSliderChange(0)}
               />
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.adjustmentRow}
-            >
-              {adjustmentKeys.map((key) => {
-                const config = ADJUSTMENT_UI[key];
-                const isActive = key === activeAdjustment;
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    style={styles.adjustmentItem}
-                    onPress={() => setActiveAdjustment(key)}
-                  >
-                    <View
-                      style={[
-                        styles.adjustmentIcon,
-                        isActive && styles.adjustmentIconActive,
-                      ]}
+            {isColorMixMode && activeMixerField ? (
+              <>
+                <View style={styles.hslHeader}>
+                  <View style={styles.hslTitleWrapper}></View>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.hslColorRow}
+                >
+                  {COLOR_CHANNELS.map((channel) => {
+                    const isChannelActive = channel === activeMixerChannel;
+                    const channelUi = COLOR_MIX_CHANNEL_UI[channel];
+                    return (
+                      <TouchableOpacity
+                        key={channel}
+                        style={styles.hslColorButton}
+                        onPress={() => setActiveMixerChannel(channel)}
+                      >
+                        <View
+                          style={[
+                            styles.hslColorSwatch,
+                            { backgroundColor: channelUi.tint },
+                            isChannelActive && styles.hslColorSwatchActive,
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.adjustmentRow}
+              >
+                {adjustmentKeys.map((key) => {
+                  const config = ADJUSTMENT_UI[key];
+                  const isActive = key === activeAdjustment;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      style={styles.adjustmentItem}
+                      onPress={() => setActiveAdjustment(key)}
                     >
-                      <MaterialIcons
-                        name={config.icon}
-                        size={24}
-                        color={
-                          isActive ? editorAccent : "rgba(255,255,255,0.6)"
-                        }
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.adjustmentLabel,
-                        isActive && styles.adjustmentLabelActive,
-                      ]}
-                    >
-                      {config.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                      <View
+                        style={[
+                          styles.adjustmentIcon,
+                          isActive && styles.adjustmentIconActive,
+                        ]}
+                      >
+                        <MaterialIcons
+                          name={config.icon}
+                          size={24}
+                          color={
+                            isActive ? editorAccent : "rgba(255,255,255,0.6)"
+                          }
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.adjustmentLabel,
+                          isActive && styles.adjustmentLabelActive,
+                        ]}
+                      >
+                        {config.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
           </ScrollView>
         )}
       </View>
@@ -752,6 +871,7 @@ const PresetPreviewThumb = ({
     () => buildEditorAdjustmentsFromPreset(preset.adjustments),
     [preset.adjustments]
   );
+  const previewColorMix = useMemo(() => createDefaultColorMix(), []);
 
   if (!imageUri) {
     const fallbackSource = preset.previewUrl
@@ -766,6 +886,7 @@ const PresetPreviewThumb = ({
         canvasRef={previewCanvasRef}
         imageUri={imageUri}
         adjustments={previewAdjustments}
+        colorMix={previewColorMix}
         cropAspectRatio={cropAspectRatio}
         cropRectNormalized={cropRectNormalized ?? DEFAULT_CROP_RECT}
         intensity={1}
@@ -1068,6 +1189,65 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(230,176,110,0.15)",
+  },
+  hslHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  hslHint: {
+    color: "#f8fafc",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  hslSubtle: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 11,
+  },
+  sheetLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  hslBackButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  hslTitleWrapper: {
+    flex: 1,
+  },
+  hslColorRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+  },
+  hslColorButton: {
+    width: 48,
+    alignItems: "center",
+  },
+  hslColorSwatch: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  hslColorSwatchActive: {
+    transform: [{ scale: 1.15 }],
+    borderColor: editorAccent,
+    shadowColor: editorAccent,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   adjustmentRow: {
     flexDirection: "row",

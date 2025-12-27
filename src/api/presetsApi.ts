@@ -1,12 +1,24 @@
 import axios from 'axios';
 
-import type { GetPresetsResponse, Preset } from '@/src/models/presets';
+import type {
+  GetPresetsResponse,
+  Preset,
+  PresetCategoryGroup,
+} from '@/src/models/presets';
 import { loadPresetAdjustments } from '@/src/services/presetParser';
 
 const PRESETS_ENDPOINT = 'https://halook-dashboard.vercel.app/api/client/presets';
 
 let cachedPresets: Preset[] | null = null;
 let inflightPromise: Promise<Preset[]> | null = null;
+
+const flattenPresetGroups = (groups: PresetCategoryGroup[] = []): Preset[] =>
+  groups.flatMap((group) =>
+    (group.presets ?? []).map((preset) => ({
+      ...preset,
+      category: group.category ?? null,
+    })),
+  );
 
 const hydratePresets = async (presets: Preset[]) =>
   Promise.all(
@@ -38,7 +50,7 @@ export const fetchPresets = async (force = false): Promise<Preset[]> => {
 
   inflightPromise = axios
     .get<GetPresetsResponse>(PRESETS_ENDPOINT)
-    .then((response) => response.data.data ?? [])
+    .then((response) => flattenPresetGroups(response.data.data ?? []))
     .then(hydratePresets)
     .then((presets) => {
       cachedPresets = presets;

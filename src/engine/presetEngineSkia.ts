@@ -1,6 +1,7 @@
-// presetShader.ts
+// presetEngineSkia.ts
 import { buildShaderUniforms } from "@/src/engine/presetMath";
 import type { EditorAdjustments } from "@/src/models/editor";
+import type { ColorMixAdjustments } from "@/src/models/presets";
 import { Skia, type SkShader } from "@shopify/react-native-skia";
 
 const presetShaderSource = `
@@ -21,6 +22,30 @@ uniform float uMixerLuminance;
 uniform float uGradeShadows;
 uniform float uGradeMidtones;
 uniform float uGradeHighlights;
+uniform float uColorMixHue0;
+uniform float uColorMixHue1;
+uniform float uColorMixHue2;
+uniform float uColorMixHue3;
+uniform float uColorMixHue4;
+uniform float uColorMixHue5;
+uniform float uColorMixHue6;
+uniform float uColorMixHue7;
+uniform float uColorMixSaturation0;
+uniform float uColorMixSaturation1;
+uniform float uColorMixSaturation2;
+uniform float uColorMixSaturation3;
+uniform float uColorMixSaturation4;
+uniform float uColorMixSaturation5;
+uniform float uColorMixSaturation6;
+uniform float uColorMixSaturation7;
+uniform float uColorMixLuminance0;
+uniform float uColorMixLuminance1;
+uniform float uColorMixLuminance2;
+uniform float uColorMixLuminance3;
+uniform float uColorMixLuminance4;
+uniform float uColorMixLuminance5;
+uniform float uColorMixLuminance6;
+uniform float uColorMixLuminance7;
 
 // Convert sRGB encoded components to linear light
 float3 srgbToLinear(float3 c) {
@@ -63,7 +88,7 @@ float3 applySaturation(float3 color, float saturation) {
 // Highlights adjustment only affects upper luminance range
 float3 applyHighlights(float3 color, float amount) {
   float L = luminance(color);
-  float mask = smoothstep(0.55, 1.15, L);
+  float mask = smoothstep(0.4, 1.0, L);
   float gain = exp2(amount);
   return mix(color, color * gain, mask);
 }
@@ -71,7 +96,7 @@ float3 applyHighlights(float3 color, float amount) {
 // Shadows adjustment lifts/lowers dark regions without clamping
 float3 applyShadows(float3 color, float amount) {
   float L = luminance(color);
-  float mask = 1.0 - smoothstep(0.1, 0.6, L);
+  float mask = 1.0 - smoothstep(0.0, 0.5, L);
   float gain = exp2(amount);
   return mix(color, color * gain, mask);
 }
@@ -81,7 +106,7 @@ float3 applyVibrance(float3 color, float amount) {
   float grey = luminance(color);
   float3 delta = color - float3(grey, grey, grey);
   float sat = length(delta);
-  float influence = 1.0 - smoothstep(0.25, 1.35, sat);
+  float influence = 1.0 - smoothstep(0.0, 1.0, sat);
   float boost = 1.0 + amount * influence;
   return float3(grey, grey, grey) + delta * boost;
 }
@@ -136,7 +161,7 @@ float3 rgbToHsl(float3 color) {
   float l = 0.5 * (maxC + minC);
   float d = maxC - minC;
   if (d > 0.00001) {
-    s = d / (1.0 - abs(2.0 * l - 1.0));
+    s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC);
     if (maxC == color.r) {
       h = ((color.g - color.b) / d + (color.g < color.b ? 6.0 : 0.0)) / 6.0;
     } else if (maxC == color.g) {
@@ -178,6 +203,82 @@ float3 applyHslMixer(float3 srgb, float hueShift, float satShift, float lumShift
   return hslToRgb(hsl);
 }
 
+float hueDistance(float a, float b) {
+  float d = abs(a - b);
+  return min(d, 1.0 - d);
+}
+
+float channelInfluence(float hue, float center, float width) {
+  float dist = hueDistance(hue, center);
+  float normalized = dist / max(width, 0.0001);
+  return exp(-normalized * normalized * 4.5);
+}
+
+const float CHANNEL_WIDTH = 0.18;
+
+float channelCenter(int index) {
+  switch (index) {
+    case 0: return 0.00;   // Red
+    case 1: return 0.083;  // Orange  
+    case 2: return 0.167;  // Yellow
+    case 3: return 0.333;  // Green
+    case 4: return 0.50;   // Aqua/Cyan
+    case 5: return 0.667;  // Blue
+    case 6: return 0.792;  // Purple
+    default: return 0.917; // Magenta
+  }
+}
+
+float3 applyColorMixPerChannel(float3 srgb) {
+  float3 hsl = rgbToHsl(srgb);
+  float hueShift = 0.0;
+  float satFactor = 1.0;
+  float lumOffset = 0.0;
+  
+  for (int i = 0; i < 8; ++i) {
+    float influence = channelInfluence(hsl.x, channelCenter(i), CHANNEL_WIDTH);
+    
+    float hueValue =
+      i == 0 ? uColorMixHue0 :
+      i == 1 ? uColorMixHue1 :
+      i == 2 ? uColorMixHue2 :
+      i == 3 ? uColorMixHue3 :
+      i == 4 ? uColorMixHue4 :
+      i == 5 ? uColorMixHue5 :
+      i == 6 ? uColorMixHue6 :
+               uColorMixHue7;
+    float satValue =
+      i == 0 ? uColorMixSaturation0 :
+      i == 1 ? uColorMixSaturation1 :
+      i == 2 ? uColorMixSaturation2 :
+      i == 3 ? uColorMixSaturation3 :
+      i == 4 ? uColorMixSaturation4 :
+      i == 5 ? uColorMixSaturation5 :
+      i == 6 ? uColorMixSaturation6 :
+               uColorMixSaturation7;
+    float lumValue =
+      i == 0 ? uColorMixLuminance0 :
+      i == 1 ? uColorMixLuminance1 :
+      i == 2 ? uColorMixLuminance2 :
+      i == 3 ? uColorMixLuminance3 :
+      i == 4 ? uColorMixLuminance4 :
+      i == 5 ? uColorMixLuminance5 :
+      i == 6 ? uColorMixLuminance6 :
+               uColorMixLuminance7;
+    
+    hueShift += hueValue * influence;
+    satFactor *= (1.0 + satValue * influence);
+    lumOffset += lumValue * influence;
+  }
+  
+  // Apply adjustments
+  hsl.x = fract(hsl.x + hueShift);
+  hsl.y = clamp(hsl.y * satFactor, 0.0, 1.0);
+  hsl.z = clamp(hsl.z + lumOffset, 0.0, 1.0);
+  
+  return hslToRgb(hsl);
+}
+
 float4 main(float2 xy) {
   float4 base = inputImage.eval(xy);
   float4 bg   = backgroundImage.eval(xy);
@@ -197,6 +298,7 @@ float4 main(float2 xy) {
 
   float3 srgb = linearToSrgb(linear);
   srgb = applyHslMixer(srgb, uMixerHue, uMixerSaturation, uMixerLuminance);
+  srgb = applyColorMixPerChannel(srgb);
   srgb = addDither(srgb, xy);
   srgb = clamp(srgb, 0.0, 1.0);
 
@@ -210,14 +312,15 @@ export const presetRuntimeEffect = Skia.RuntimeEffect.Make(presetShaderSource);
 export const createPresetShader = (
   imageShader: SkShader | null,
   backgroundShader: SkShader | null,
-  adjustments: EditorAdjustments
+  adjustments: EditorAdjustments,
+  colorMix: ColorMixAdjustments
 ) => {
   if (!presetRuntimeEffect || !imageShader) {
     return null;
   }
 
   // buildShaderUniforms returns a keyed object for the React <Shader /> API
-  const uniforms = buildShaderUniforms(adjustments);
+  const uniforms = buildShaderUniforms(adjustments, colorMix);
   const uniformArray = [
     uniforms.uExposure,
     uniforms.uContrast,
@@ -233,12 +336,36 @@ export const createPresetShader = (
     uniforms.uGradeShadows,
     uniforms.uGradeMidtones,
     uniforms.uGradeHighlights,
+    uniforms.uColorMixHue0,
+    uniforms.uColorMixHue1,
+    uniforms.uColorMixHue2,
+    uniforms.uColorMixHue3,
+    uniforms.uColorMixHue4,
+    uniforms.uColorMixHue5,
+    uniforms.uColorMixHue6,
+    uniforms.uColorMixHue7,
+    uniforms.uColorMixSaturation0,
+    uniforms.uColorMixSaturation1,
+    uniforms.uColorMixSaturation2,
+    uniforms.uColorMixSaturation3,
+    uniforms.uColorMixSaturation4,
+    uniforms.uColorMixSaturation5,
+    uniforms.uColorMixSaturation6,
+    uniforms.uColorMixSaturation7,
+    uniforms.uColorMixLuminance0,
+    uniforms.uColorMixLuminance1,
+    uniforms.uColorMixLuminance2,
+    uniforms.uColorMixLuminance3,
+    uniforms.uColorMixLuminance4,
+    uniforms.uColorMixLuminance5,
+    uniforms.uColorMixLuminance6,
+    uniforms.uColorMixLuminance7,
   ];
 
   // Thứ tự children phải khớp với thứ tự `uniform shader` trong SkSL
   const children: SkShader[] = [
-    imageShader,                         // inputImage
-    backgroundShader ?? imageShader,     // backgroundImage
+    imageShader, // inputImage
+    backgroundShader ?? imageShader, // backgroundImage
   ];
 
   return presetRuntimeEffect.makeShaderWithChildren(uniformArray, children);

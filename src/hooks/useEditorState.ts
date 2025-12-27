@@ -3,12 +3,19 @@ import { create } from "zustand";
 import {
   buildEditorAdjustmentsFromPreset,
   clampAdjustment,
+  clampColorMixValue,
+  createDefaultColorMix,
   defaultAdjustments,
+  cloneColorMix,
 } from "@/src/engine/presetMath";
 import { CROP_OPTIONS } from "@/src/constants/cropOptions";
 import { clampCropRect, DEFAULT_CROP_RECT } from "@/src/engine/cropMath";
 import type { CropRect, EditorStore } from "@/src/models/editor";
-import type { Preset, PresetAdjustment } from "@/src/models/presets";
+import type {
+  Preset,
+  PresetAdjustment,
+  ColorChannel,
+} from "@/src/models/presets";
 
 const normalizePreset = (preset?: Preset, adjustments?: PresetAdjustment) => {
   const presetAdjustments = adjustments ?? preset?.adjustments;
@@ -24,6 +31,7 @@ export const useEditorState = create<EditorStore>((set, get) => ({
   backgroundSource: null,
   preset: undefined,
   adjustments: { ...defaultAdjustments },
+  colorMix: createDefaultColorMix(),
   cropAspectRatio: null,
   cropModeId: CROP_OPTIONS[0].id,
   presetIntensity: 1,
@@ -33,6 +41,8 @@ export const useEditorState = create<EditorStore>((set, get) => ({
     set({
       preset,
       adjustments: normalizePreset(preset, adjustments),
+      colorMix: createDefaultColorMix(),
+      presetIntensity: 1,
     });
   },
   updateAdjustment: (key, value) =>
@@ -45,6 +55,7 @@ export const useEditorState = create<EditorStore>((set, get) => ({
   resetAdjustments: () =>
     set({
       adjustments: { ...defaultAdjustments },
+      colorMix: createDefaultColorMix(),
       preset: undefined,
       backgroundSource: null,
       presetIntensity: 1,
@@ -98,6 +109,24 @@ export const useEditorState = create<EditorStore>((set, get) => ({
   setPresetIntensity: (value) =>
     set({
       presetIntensity: Math.min(1, Math.max(0, value)),
+    }),
+  setColorMixValue: (channel, field, value) =>
+    set((state) => ({
+      colorMix: {
+        ...state.colorMix,
+        [field]: {
+          ...state.colorMix[field],
+          [channel]: clampColorMixValue(field, value),
+        },
+      },
+    })),
+  setColorMixState: (mix) =>
+    set({
+      colorMix: cloneColorMix(mix),
+    }),
+  resetColorMix: () =>
+    set({
+      colorMix: createDefaultColorMix(),
     }),
   setCropRectNormalized: (rect) =>
     set({

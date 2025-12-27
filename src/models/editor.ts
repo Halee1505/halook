@@ -1,6 +1,11 @@
 import type { ImageSourcePropType } from 'react-native';
 
-import type { Preset, PresetAdjustment } from '@/src/models/presets';
+import type {
+  Preset,
+  PresetAdjustment,
+  ColorMixAdjustments,
+  ColorChannel,
+} from '@/src/models/presets';
 
 export const adjustmentKeys = [
   'exposure',
@@ -35,6 +40,7 @@ export interface EditorStateShape {
   backgroundSource: ImageSourcePropType | null;
   preset?: Preset;
   adjustments: EditorAdjustments;
+  colorMix: ColorMixAdjustments;
   cropAspectRatio: number | null;
   cropModeId: string;
   presetIntensity: number;
@@ -49,6 +55,13 @@ export interface EditorStateActions {
   setBackgroundSource: (source: ImageSourcePropType | null) => void;
   setCropAspectRatio: (ratio: number | null, modeId?: string) => void;
   setPresetIntensity: (value: number) => void;
+  setColorMixValue: (
+    channel: ColorChannel,
+    field: "hue" | "saturation" | "luminance",
+    value: number
+  ) => void;
+  setColorMixState: (mix: ColorMixAdjustments) => void;
+  resetColorMix: () => void;
   setCropRectNormalized: (rect: CropRect) => void;
   resetCrop: () => void;
   updateCropByDelta: (

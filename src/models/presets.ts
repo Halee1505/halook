@@ -186,6 +186,14 @@ export const mergePresetAdjustment = (
   return base;
 };
 
+export interface PresetCategory {
+  _id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  coverUrl?: string;
+}
+
 export interface Preset {
   _id: string;
   name: string;
@@ -194,10 +202,16 @@ export interface Preset {
   scope: PresetScope;
   createdAt: string;
   updatedAt: string;
+  category?: PresetCategory | null;
   adjustments?: PresetAdjustment;
 }
 
+export interface PresetCategoryGroup {
+  category: PresetCategory | null;
+  presets: Preset[];
+}
+
 export interface GetPresetsResponse {
-  data: Preset[];
+  data: PresetCategoryGroup[];
   error: string | null;
 }
